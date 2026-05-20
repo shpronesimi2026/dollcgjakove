@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Mrasor Platform – Shpronesimi 1978-2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1f5e7a;
+            --primary-light: #2c7da0;
+            --accent-green: #1e7145;
+            --accent-orange: #d68b2c;
+            --bg: #eef2f7;
+            --surface: #ffffff;
+            --text: #1a2b3c;
+            --text-muted: #5a6e7c;
+            --border: #dce5ec;
+            --danger: #c73e1d;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.2);
+            --radius-sm: 8px;
+            --radius: 16px;
+            --radius-lg: 28px;
+            --radius-xl: 60px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            height: 100vh;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ── LOGIN OVERLAY ── */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e2b3c 0%, #0f1a24 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .login-card {
+            background: var(--surface);
+            border-radius: 32px;
+            padding: 40px 32px;
+            width: 440px;
+            max-width: 94vw;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+        .login-card .login-icon {
+            font-size: 52px;
+            color: var(--primary-light);
+            margin-bottom: 12px;
+            display: inline-block;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.08);
+            }
+        }
+        .login-card h2 {
+            color: #1e2b3c;
+            margin-bottom: 4px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            letter-spacing: -0.3px;
+        }
+        .login-card .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-xl);
+            font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition);
+            background: #f8fafc;
+        }
+        .login-card input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 4px rgba(44, 125, 160, 0.1);
+            background: #fff;
+        }
+        .login-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .login-btn {
+            flex: 1;
+            min-width: 130px;
+            background: var(--primary-light);
+            color: white;
+            border: none;
+            padding: 14px 16px;
+            border-radius: var(--radius-xl);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition);
+            letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .login-btn:hover {
+            background: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(31, 94, 122, 0.3);
+        }
+        .login-btn:active {
+            transform: scale(0.97);
+        }
+        .login-btn.viewer-btn {
+            background: #5f7f6e;
+        }
+        .login-btn.viewer-btn:hover {
+            background: #3e5a4c;
+            box-shadow: 0 6px 20px rgba(62, 90, 76, 0.3);
+        }
+        .error-msg {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 10px;
+            font-weight: 500;
+            min-height: 20px;
+            transition: var(--transition);
+        }
+
+        /* ── APP CONTAINER ── */
+        .app-container {
+            display: none;
+            height: 100vh;
+            flex-direction: column;
+            animation: fadeIn 0.35s ease;
+        }
+        .top-bar {
+            background: var(--surface);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: var(--shadow-sm);
+            z-index: 100;
+        }
+        .logo-area {
+            font-weight: 700;
+            font-size: 1.15rem;
+            background: linear-gradient(135deg, #1f5e7a, #2c7da0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo-area i {
+            font-size: 1.3rem;
+            background: none;
+            color: var(--primary-light);
+            -webkit-background-clip: unset;
+            background-clip: unset;
+        }
+        .stats-badge {
+            display: flex;
+            gap: 16px;
+            background: #f8fafc;
+            padding: 6px 16px;
+            border-radius: var(--radius-xl);
+            flex-wrap: wrap;
+            border: 1px solid #edf2f7;
+        }
+        .stat-item {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+        .stat-value {
+            font-weight: 800;
+            color: var(--primary);
+            margin-left: 5px;
+            font-variant-numeric: tabular-nums;
+            font-family: 'Inter', monospace;
+            letter-spacing: -0.2px;
+        }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .search-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .search-input {
+            padding: 8px 14px 8px 34px;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-xl);
+            font-size: 0.85rem;
+            outline: none;
+            width: 180px;
+            transition: var(--transition);
+            background: #f8fafc;
+        }
+        .search-input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(44, 125, 160, 0.08);
+            width: 220px;
+            background: #fff;
+        }
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+        .btn-icon {
+            background: #f1f5f9;
+            border: 1.5px solid transparent;
+            font-size: 0.82rem;
+            cursor: pointer;
+            padding: 8px 14px;
+            border-radius: var(--radius-xl);
+            transition: var(--transition);
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            color: #475569;
+            letter-spacing: 0.1px;
+        }
+        .btn-icon i {
+            font-size: 0.9rem;
+        }
+        .btn-icon:hover {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+        }
+        .btn-icon:active {
+            transform: scale(0.96);
+        }
+        .btn-excel {
+            background: var(--accent-green);
+            color: white;
+            border-color: var(--accent-green);
+        }
+        .btn-excel:hover {
+            background: #155a38;
+            border-color: #155a38;
+            box-shadow: 0 4px 14px rgba(30, 113, 69, 0.25);
+        }
+        .btn-add {
+            background: var(--primary-light);
+            color: white;
+            border-color: var(--primary-light);
+        }
+        .btn-add:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 4px 14px rgba(44, 125, 160, 0.25);
+        }
+        .btn-upload {
+            background: var(--accent-orange);
+            color: white;
+            border-color: var(--accent-orange);
+        }
+        .btn-upload:hover {
+            background: #b56e1a;
+            border-color: #b56e1a;
+            box-shadow: 0 4px 14px rgba(214, 139, 44, 0.25);
+        }
+        .btn-backup {
+            background: #6b5b95;
+            color: white;
+            border-color: #6b5b95;
+        }
+        .btn-backup:hover {
+            background: #534878;
+            border-color: #534878;
+        }
+        .btn-logout {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fecaca;
+        }
+        .btn-logout:hover {
+            background: #fecaca;
+            border-color: #fca5a5;
+        }
+
+        /* ── TABLE WRAPPER ── */
+        .table-wrapper {
+            flex: 1;
+            padding: 12px 16px;
+            overflow: auto;
+            background: #f9fbfd;
+        }
+        #excel-grid {
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            background: white;
+            min-height: 300px;
+        }
+        /* Tabulator overrides */
+        .tabulator {
+            font-size: 0.84rem !important;
+            border: none !important;
+        }
+        .tabulator .tabulator-header {
+            background: #f1f5f9 !important;
+            border-bottom: 2px solid #dce5ec !important;
+        }
+        .tabulator .tabulator-header .tabulator-col {
+            background: #f1f5f9 !important;
+            font-weight: 700 !important;
+            color: #1e2b3c !important;
+            border-right: 1px solid #e2e8f0 !important;
+            padding: 10px 8px !important;
+        }
+        .tabulator .tabulator-header .tabulator-col.tabulator-sortable:hover {
+            background: #e2e8f0 !important;
+        }
+        .tabulator-row {
+            border-bottom: 1px solid #f1f5f9 !important;
+            transition: background 0.15s;
+        }
+        .tabulator-row:hover {
+            background: #f0f9ff !important;
+        }
+        .tabulator-row.tabulator-row-even {
+            background: #fafcfd !important;
+        }
+        .tabulator-row.tabulator-row-even:hover {
+            background: #f0f9ff !important;
+        }
+        .tabulator-row .tabulator-cell {
+            padding: 8px 8px !important;
+            border-right: 1px solid #f8fafc !important;
+        }
+        .tabulator .tabulator-footer {
+            background: #f8fafc !important;
+            border-top: 1px solid #e2e8f0 !important;
+            padding: 8px 12px !important;
+        }
+
+        /* ── TOAST ── */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 8px;
+            pointer-events: none;
+        }
+        .toast-msg {
+            background: var(--primary-light);
+            color: white;
+            padding: 12px 20px;
+            border-radius: var(--radius-xl);
+            font-size: 0.85rem;
+            font-weight: 500;
+            box-shadow: var(--shadow-md);
+            animation: toastIn 0.35s ease, toastOut 0.3s ease 2s forwards;
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 420px;
+        }
+        .toast-msg.error {
+            background: var(--danger);
+        }
+        .toast-msg.success {
+            background: var(--accent-green);
+        }
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(60px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        @keyframes toastOut {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+        }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 26, 36, 0.6);
+            z-index: 1500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+        .modal-dialog {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 28px 24px;
+            max-width: 420px;
+            width: 92vw;
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        .modal-dialog h3 {
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+        .modal-dialog p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .modal-btn {
+            padding: 10px 22px;
+            border-radius: var(--radius-xl);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+            transition: var(--transition);
+        }
+        .modal-btn.confirm {
+            background: var(--danger);
+            color: white;
+        }
+        .modal-btn.confirm:hover {
+            background: #a31d10;
+        }
+        .modal-btn.cancel {
+            background: #e2e8f0;
+            color: #475569;
+        }
+        .modal-btn.cancel:hover {
+            background: #cbd5e1;
+        }
+
+        /* ── FOOTER ── */
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 7px 12px;
+            color: #7b8c9b;
+            background: #f8fafc;
+            border-top: 1px solid #edf2f7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        footer .kb-shortcut {
+            background: #e2e8f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.7rem;
+        }
+
+        /* ── PRINT ── */
+        @media print {
+            body {
+                background: white !important;
+                overflow: visible !important;
+            }
+            .top-bar,
+            .toolbar,
+            footer,
+            .toast-container,
+            .modal-overlay,
+            .login-overlay,
+            #uploadInput {
+                display: none !important;
+            }
+            .table-wrapper {
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+            #excel-grid {
+                box-shadow: none !important;
+                border-radius: 0 !important;
+            }
+            .tabulator {
+                font-size: 0.7rem !important;
+            }
+            .app-container {
+                height: auto !important;
+                display: flex !important;
+            }
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 900px) {
+            .stats-badge {
+                display: none;
+            }
+            .search-input {
+                width: 120px;
+            }
+            .search-input:focus {
+                width: 150px;
+            }
+            .btn-icon span.btn-label {
+                display: none;
+            }
+            .btn-icon {
+                padding: 8px 10px;
+            }
+            .logo-area {
+                font-size: 1rem;
+            }
+            .top-bar {
+                padding: 8px 12px;
+                gap: 6px;
+            }
+            .toolbar {
+                gap: 4px;
+            }
+        }
+        @media (max-width: 500px) {
+            .login-card {
+                padding: 24px 16px;
+                border-radius: 24px;
+            }
+            .login-card h2 {
+                font-size: 1.2rem;
+            }
+            .login-buttons {
+                flex-direction: column;
+            }
+            .search-input {
+                width: 90px;
+            }
+            .search-input:focus {
+                width: 110px;
+            }
+        }
+    </style>
+    <!-- Tabulator CSS already linked in head -->
+</head>
+<body>
+
+    <!-- ═══════════ LOGIN SCREEN ═══════════ -->
+    <div id="loginScreen" class="login-overlay">
+        <div class="login-card">
+            <div class="login-icon"><i class="fas fa-landmark"></i></div>
+            <h2>Mrasor · Kadastër</h2>
+            <p class="subtitle">Shpronesimi 1978 → 2026</p>
+            <input type="text" id="loginUsername" placeholder="Emri përdorues" autocomplete="off" aria-label="Emri përdorues">
+            <input type="password" id="loginPassword" placeholder="Fjalëkalimi (për admin)" aria-label="Fjalëkalimi">
+            <div class="login-buttons">
+                <button class="login-btn" id="adminLoginBtn"><i class="fas fa-user-shield"></i> Admin Login</button>
+                <button class="login-btn viewer-btn" id="viewerLoginBtn"><i class="fas fa-eye"></i> Viewer (shiko)</button>
+            </div>
+            <div id="loginError" class="error-msg"></div>
+            <p style="font-size:0.7rem;color:#94a3b8;margin-top:10px;">Admin: fjalëkalimi · Viewer: pa fjalëkalim</p>
+        </div>
+    </div>
+
+    <!-- ═══════════ MAIN APP ═══════════ -->
+    <div id="appContainer" class="app-container">
+        <div class="top-bar">
+            <div class="logo-area"><i class="fas fa-map-marked-alt"></i> MRASOR · Shpronësimi 1978</div>
+            <div class="stats-badge" id="statsPanel">
+                <div class="stat-item">📦 Parcela: <span id="totalParcels" class="stat-value">0</span></div>
+                <div class="stat-item">📐 Shpronesuar: <span id="totalExp" class="stat-value">0 m²</span></div>
+                <div class="stat-item">🗺️ Sip.2026: <span id="totalArea2026" class="stat-value">0 m²</span></div>
+                <div class="stat-item">👥 Pronarë: <span id="uniqueOwners" class="stat-value">0</span></div>
+            </div>
+            <div class="toolbar" id="toolbarContainer">
+                <div class="search-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" id="globalSearch" placeholder="Kërko..." aria-label="Kërko në të gjitha kolonat">
+                </div>
+                <button id="uploadExcelBtn" class="btn-icon btn-upload" style="display:none;" title="Ngarko Excel"><i class="fas fa-upload"></i> <span class="btn-label">Upload</span></button>
+                <button id="exportExcelBtn" class="btn-icon btn-excel" style="display:none;" title="Eksporto Excel të formatuar"><i class="fas fa-file-excel"></i> <span class="btn-label">Excel</span></button>
+                <button id="exportCsvBtn" class="btn-icon" style="display:none;" title="Eksporto CSV"><i class="fas fa-file-csv"></i> <span class="btn-label">CSV</span></button>
+                <button id="backupBtn" class="btn-icon btn-backup" style="display:none;" title="Ruaj kopje rezervë (JSON)"><i class="fas fa-download"></i> <span class="btn-label">Backup</span></button>
+                <button id="restoreBtn" class="btn-icon" style="display:none;" title="Rikthe nga kopje rezervë"><i class="fas fa-upload"></i> <span class="btn-label">Rikthe</span></button>
+                <button id="addNewRowBtn" class="btn-icon btn-add" style="display:none;" title="Shto parcelë të re"><i class="fas fa-plus"></i> <span class="btn-label">Shto</span></button>
+                <button id="logoutBtn" class="btn-icon btn-logout" title="Dil nga platforma"><i class="fas fa-sign-out-alt"></i> <span class="btn-label">Dil</span></button>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <div id="excel-grid"></div>
+        </div>
+        <footer>
+            ✎ Admin: kliko qelizën për edit | Upload Excel | Eksport Excel/CSV | Backup JSON
+            <span class="kb-shortcut">Ctrl+S</span> Eksport
+            <span class="kb-shortcut">Ctrl+F</span> Kërko
+            <span class="kb-shortcut">Ctrl+N</span> Shto
+        </footer>
+    </div>
+
+    <!-- ═══════════ TOAST CONTAINER ═══════════ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ═══════════ HIDDEN FILE INPUTS ═══════════ -->
+    <input type="file" id="uploadInput" accept=".xlsx, .xls, .csv" style="display:none;">
+    <input type="file" id="restoreInput" accept=".json" style="display:none;">
+
+    <!-- ═══════════ SCRIPTS ═══════════ -->
+    <script src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js">
+    </script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js">
+    </script>
+    <script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js">
+    </script>
+
+    <script>
+        (function() {
+            // ═══════════════════════════════════════
+            //  EMBEDDED INITIAL DATA (22 parcela)
+            //  Numrat rendor tani janë unikë (1..22)
+            // ═══════════════════════════════════════
+            const embeddedParcels = [
+                { numri_rendor: 1, zona_kadastrale: "Mrasor", nr_parceles_1978: "258-0",
+                    nr_parceles_2026: "258-1", siperfaqja_1978: 8777, siperfaqja_shpronesuar: 860,
+                    siperfaqja_2026: 1252, pronari: "Tahir Ali Mrasoraj",
+                    dokumenti: "Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Parcela ne Dokumentacionin e shpronesimit te vitit 1978 ka qene e pandare,parcela ne gjendjen tash te vitit 2026 eshte e ndare ne 4 pjese,ku me ndarjet e reja vetem parcela me nr 258-1 perfshihet ne shpronesim.Nga linja e shpronesimit siperfaqja qe shpronesohet eshte 658 m2" },
+                { numri_rendor: 2, zona_kadastrale: "Mrasor", nr_parceles_1978: "260-0",
+                    nr_parceles_2026: "260-1", siperfaqja_1978: 3635, siperfaqja_shpronesuar: 104,
+                    siperfaqja_2026: 1280, pronari: "Tahir Ali Mrasoraj",
+                    dokumenti: "Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Nga linjat e shpronesimit parcela 260-1 siperfaqe 104 m2" },
+                { numri_rendor: 3, zona_kadastrale: "Mrasor", nr_parceles_1978: "260-0",
+                    nr_parceles_2026: "260-2", siperfaqja_1978: 3635, siperfaqja_shpronesuar: 818,
+                    siperfaqja_2026: 1113, pronari: "Tahir Ali Mrasoraj",
+                    dokumenti: "Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Ndarje e re nga parcela origjinale 260-0" },
+                { numri_rendor: 4, zona_kadastrale: "Mrasor", nr_parceles_1978: "261-0",
+                    nr_parceles_2026: "261-0", siperfaqja_1978: 3126, siperfaqja_shpronesuar: 275,
+                    siperfaqja_2026: 3121, pronari: "Tahir Ali Mrasoraj",
+                    dokumenti: "Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 183m2" },
+                { numri_rendor: 5, zona_kadastrale: "Mrasor", nr_parceles_1978: "268-0",
+                    nr_parceles_2026: "268-0", siperfaqja_1978: 962, siperfaqja_shpronesuar: 20,
+                    siperfaqja_2026: 979, pronari: "Haxhi Danë Mrasoraj",
+                    dokumenti: "Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 60m2" },
+                { numri_rendor: 6, zona_kadastrale: "Mrasor", nr_parceles_1978: "269-0",
+                    nr_parceles_2026: "269-0", siperfaqja_1978: 5293, siperfaqja_shpronesuar: 2430,
+                    siperfaqja_2026: 5316, pronari: "Haxhi Danë Mrasoraj",
+                    dokumenti: "Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 2380m2" },
+                { numri_rendor: 7, zona_kadastrale: "Mrasor", nr_parceles_1978: "247-0",
+                    nr_parceles_2026: "247-0", siperfaqja_1978: 9196, siperfaqja_shpronesuar: 415,
+                    siperfaqja_2026: 9977, pronari: "Salih Haxhi Mrasoraj",
+                    dokumenti: "Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 325m2" },
+                { numri_rendor: 8, zona_kadastrale: "Mrasor", nr_parceles_1978: "425-0",
+                    nr_parceles_2026: "425-0", siperfaqja_1978: 0, siperfaqja_shpronesuar: 365,
+                    siperfaqja_2026: 8564, pronari: "Haxhi Danë Mrasoraj",
+                    dokumenti: "Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 197m2" },
+                { numri_rendor: 9, zona_kadastrale: "Mrasor", nr_parceles_1978: "254-0",
+                    nr_parceles_2026: "254-0", siperfaqja_1978: 6579, siperfaqja_shpronesuar: 320,
+                    siperfaqja_2026: 6547, pronari: "Zenel Ali Mrasoraj",
+                    dokumenti: "Lenda Zenel Ali Mrasoraj Nr.147-78 ZK Mrasor KK Rahovec,parcelat kadastrale 254-0,255-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 255m2" },
+                { numri_rendor: 10, zona_kadastrale: "Mrasor", nr_parceles_1978: "255-0",
+                    nr_parceles_2026: "255-0", siperfaqja_1978: 342, siperfaqja_shpronesuar: 282, siperfaqja_2026: 342,
+                    pronari: "Zenel Ali Mrasoraj",
+                    dokumenti: "Lenda Zenel Ali Mrasoraj Nr.147-78 ZK Mrasor KK Rahovec,parcelat kadastrale 254-0,255-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 289m2" },
+                { numri_rendor: 11, zona_kadastrale: "Mrasor", nr_parceles_1978: "264-0",
+                    nr_parceles_2026: "264-0", siperfaqja_1978: 1202, siperfaqja_shpronesuar: 350,
+                    siperfaqja_2026: 1205, pronari: "Rrusta Bajram Mrasoraj",
+                    dokumenti: "Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 389m2" },
+                { numri_rendor: 12, zona_kadastrale: "Mrasor", nr_parceles_1978: "265-0",
+                    nr_parceles_2026: "265-0", siperfaqja_1978: 706, siperfaqja_shpronesuar: 706, siperfaqja_2026: 704,
+                    pronari: "Rrusta Bajram Mrasoraj",
+                    dokumenti: "Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "E gjithe parcela shpronesohet" },
+                { numri_rendor: 13, zona_kadastrale: "Mrasor", nr_parceles_1978: "230-0",
+                    nr_parceles_2026: "230-0", siperfaqja_1978: 6785, siperfaqja_shpronesuar: 2000,
+                    siperfaqja_2026: 6791, pronari: "Rrusta Bajram Mrasoraj",
+                    dokumenti: "Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1788m2" },
+                { numri_rendor: 14, zona_kadastrale: "Mrasor", nr_parceles_1978: "229-0",
+                    nr_parceles_2026: "229-0", siperfaqja_1978: 4003, siperfaqja_shpronesuar: 1225,
+                    siperfaqja_2026: 3975, pronari: "Rrusta Bajram Mrasoraj",
+                    dokumenti: "Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1006m2" },
+                { numri_rendor: 15, zona_kadastrale: "Mrasor", nr_parceles_1978: "239-0",
+                    nr_parceles_2026: "239-0", siperfaqja_1978: 4222, siperfaqja_shpronesuar: 215,
+                    siperfaqja_2026: 4221, pronari: "Rrusta Bajram Mrasoraj",
+                    dokumenti: "Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 325m2" },
+                { numri_rendor: 16, zona_kadastrale: "Mrasor", nr_parceles_1978: "379-0",
+                    nr_parceles_2026: "379-0", siperfaqja_1978: 8718, siperfaqja_shpronesuar: 2175,
+                    siperfaqja_2026: 8774, pronari: "Rrusta Bajram Mrasoraj",
+                    dokumenti: "Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1641m2" },
+                { numri_rendor: 17, zona_kadastrale: "Mrasor", nr_parceles_1978: "380-0",
+                    nr_parceles_2026: "380-0", siperfaqja_1978: 1440, siperfaqja_shpronesuar: 250,
+                    siperfaqja_2026: 1444, pronari: "Rrusta Bajram Mrasoraj",
+                    dokumenti: "Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 293m2" },
+                { numri_rendor: 18, zona_kadastrale: "Mrasor", nr_parceles_1978: "267-1",
+                    nr_parceles_2026: "267-1", siperfaqja_1978: 2956, siperfaqja_shpronesuar: 1650,
+                    siperfaqja_2026: 2968, pronari: "Amrush Halil Avdyli", dokumenti: "",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1947 m2" },
+                { numri_rendor: 19, zona_kadastrale: "Mrasor", nr_parceles_1978: "241-2", nr_parceles_2026: "",
+                    siperfaqja_1978: 900, siperfaqja_shpronesuar: 0, siperfaqja_2026: 0,
+                    pronari: "Amrush Halil Avdyli", dokumenti: "",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente: "" },
+                { numri_rendor: 20, zona_kadastrale: "Mrasor", nr_parceles_1978: "238-0", nr_parceles_2026: "",
+                    siperfaqja_1978: 525, siperfaqja_shpronesuar: 0, siperfaqja_2026: 0,
+                    pronari: "Amrush Halil Avdyli", dokumenti: "",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente: "" },
+                { numri_rendor: 21, zona_kadastrale: "Mrasor", nr_parceles_1978: "376-0",
+                    nr_parceles_2026: "376-5", siperfaqja_1978: 0, siperfaqja_shpronesuar: 1930,
+                    siperfaqja_2026: 1471, pronari: "Amrush Halil Avdyli", dokumenti: "",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Parcela ne Dokumentacionin e shpronesimit te vitit 1978 ka qene e pandare,parcela ne gjendjen tash te vitit 2026 eshte e ndare ne 5 pjese ne grafik,ku me ndarjet e reja vetem parcela me nr 376-5 perfshihet ne baze te linjes se shpronesimit shpronesohet e gjitha me siperfaqe 1471 m2" },
+                { numri_rendor: 22, zona_kadastrale: "Mrasor", nr_parceles_1978: "417-0",
+                    nr_parceles_2026: "417-0", siperfaqja_1978: 0, siperfaqja_shpronesuar: 310, siperfaqja_2026: 3269,
+                    pronari: "Amrush Halil Avdyli", dokumenti: "",
+                    burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                    komente: "Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 311 m2" }
+            ];
+
+            // ═══════════ INDEXED DB ═══════════
+            const db = new Dexie("MrasorDB");
+            db.version(1).stores({
+                parcels: "++id, numri_rendor, zona_kadastrale, nr_parceles_1978, nr_parceles_2026, pronari"
+            });
+
+            // ═══════════ GLOBAL STATE ═══════════
+            let currentTable = null;
+            let currentRole = null;
+            let toastTimer = null;
+            const toastQueue = [];
+
+            // ═══════════ DOM REFS ═══════════
+            const $ = (sel) => document.querySelector(sel);
+            const $$ = (sel) => document.querySelectorAll(sel);
+
+            // ═══════════ TOAST SYSTEM ═══════════
+            function showMessage(text, type = 'info') {
+                const container = $('#toastContainer');
+                const toast = document.createElement('div');
+                toast.className = 'toast-msg ' + (type === 'error' ? 'error' : type === 'success' ? 'success' :
+                    '');
+                const icons = { info: 'fa-circle-info', error: 'fa-circle-exclamation', success: 'fa-circle-check' };
+                toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${text}</span>`;
+                container.appendChild(toast);
+                // Auto-remove after animation
+                setTimeout(() => {
+                    if (toast.parentNode) toast.remove();
+                }, 2500);
+                // Limit to 4 toasts
+                while (container.children.length > 4) {
+                    container.firstChild.remove();
+                }
+            }
+
+            // ═══════════ CUSTOM MODAL ═══════════
+            function showConfirm(title, message, confirmText = 'Konfirmo', cancelText = 'Anulo') {
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay';
+                    overlay.innerHTML = `
+                <div class="modal-dialog">
+                  <h3>${title}</h3>
+                  <p>${message}</p>
+                  <div class="modal-buttons">
+                    <button class="modal-btn cancel" id="modalCancel">${cancelText}</button>
+                    <button class="modal-btn confirm" id="modalConfirm">${confirmText}</button>
+                  </div>
+                </div>`;
+                    document.body.appendChild(overlay);
+                    const close = (result) => {
+                        overlay.remove();
+                        resolve(result);
+                    };
+                    overlay.querySelector('#modalConfirm').addEventListener('click', () => close(true));
+                    overlay.querySelector('#modalCancel').addEventListener('click', () => close(false));
+                    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(false); });
+                    // Keyboard
+                    const onKey = (e) => {
+                        if (e.key === 'Escape') { close(false);
+                            document.removeEventListener('keydown', onKey); }
+                        if (e.key === 'Enter') { close(true);
+                            document.removeEventListener('keydown', onKey); }
+                    };
+                    document.addEventListener('keydown', onKey);
+                });
+            }
+
+            // ═══════════ UPDATE STATISTICS ═══════════
+            async function updateStats() {
+                try {
+                    const all = await db.parcels.toArray();
+                    const total = all.length;
+                    const totalExp = all.reduce((sum, p) => sum + (Number(p.siperfaqja_shpronesuar) || 0), 0);
+                    const totalArea2026 = all.reduce((sum, p) => sum + (Number(p.siperfaqja_2026) || 0), 0);
+                    const uniqueOwn = new Set(all.map(p => (p.pronari || '').trim()).filter(v => v !== "")).size;
+                    $('#totalParcels').innerText = total;
+                    $('#totalExp').innerHTML = totalExp.toLocaleString('sq-AL') + " m²";
+                    $('#totalArea2026').innerHTML = totalArea2026.toLocaleString('sq-AL') + " m²";
+                    $('#uniqueOwners').innerText = uniqueOwn;
+                } catch (e) {
+                    console.error('Stats error:', e);
+                }
+            }
+
+            // ═══════════ AUTO-RENUMBER ═══════════
+            async function renumberAllParcels(silent = false) {
+                try {
+                    let all = await db.parcels.toArray();
+                    if (all.length === 0) return;
+                    all.sort((a, b) => {
+                        let aNum = a.numri_rendor ?? Number.MAX_SAFE_INTEGER;
+                        let bNum = b.numri_rendor ?? Number.MAX_SAFE_INTEGER;
+                        if (aNum !== bNum) return aNum - bNum;
+                        return (a.id || 0) - (b.id || 0);
+                    });
+                    let needsUpdate = false;
+                    const updated = all.map((item, i) => {
+                        const expected = i + 1;
+                        if (item.numri_rendor !== expected) {
+                            item.numri_rendor = expected;
+                            needsUpdate = true;
+                        }
+                        return item;
+                    });
+                    if (needsUpdate) {
+                        await db.parcels.bulkPut(updated);
+                        if (currentTable) {
+                            const fresh = await db.parcels.toArray();
+                            currentTable.setData(fresh);
+                            await updateStats();
+                        }
+                        if (!silent) showMessage("Numrat rendor u rregulluan automatikisht (1,2,3...)", "success");
+                    }
+                } catch (e) {
+                    console.error('Renumber error:', e);
+                }
+            }
+
+            // ═══════════ LOAD TABLE DATA ═══════════
+            async function loadTableData() {
+                const data = await db.parcels.toArray();
+                if (currentTable) {
+                    currentTable.setData(data);
+                    await updateStats();
+                }
+                return data;
+            }
+
+            // ═══════════ SEED INITIAL DATA ═══════════
+            async function seedInitialData() {
+                try {
+                    const count = await db.parcels.count();
+                    if (count === 0) {
+                        await db.parcels.bulkAdd(embeddedParcels);
+                        await renumberAllParcels(true);
+                        showMessage("Të dhënat fillestare u ngarkuan (22 parcela).", "success");
+                    } else {
+                        await renumberAllParcels(true);
+                    }
+                    await loadTableData();
+                } catch (e) {
+                    console.error('Seed error:', e);
+                    showMessage("Gabim gjatë ngarkimit të të dhënave fillestare.", "error");
+                }
+            }
+
+            // ═══════════ COLUMN DEFINITIONS ═══════════
+            function getColumns(role) {
+                const baseColumns = [
+                    { title: "ID", field: "id", visible: false },
+                    { title: "Nr.Rendor", field: "numri_rendor", width: 95, hozAlign: "center",
+                        editor: (role === 'admin') ? "number" : false, validator: "required",
+                        headerSort: true, sorter: "number" },
+                    { title: "Zona Kad.", field: "zona_kadastrale", width: 100,
+                        editor: (role === 'admin') ? "input" : false, headerSort: true },
+                    { title: "Nr 1978", field: "nr_parceles_1978", width: 100,
+                        editor: (role === 'admin') ? "input" : false, headerSort: true },
+                    { title: "Nr 2026", field: "nr_parceles_2026", width: 100,
+                        editor: (role === 'admin') ? "input" : false, headerSort: true },
+                    { title: "Siperf 1978 (m²)", field: "siperfaqja_1978", width: 120, hozAlign: "right",
+                        editor: (role === 'admin') ? "number" : false, editorParams: { step: 0.1, min: 0 },
+                        formatter: "money", formatterParams: { decimal: ".", thousand: ",", symbol: "",
+                            precision: 2 }, headerSort: true, sorter: "number" },
+                    { title: "Shpronesuar (m²)", field: "siperfaqja_shpronesuar", width: 130, hozAlign: "right",
+                        editor: (role === 'admin') ? "number" : false, editorParams: { step: 0.1, min: 0 },
+                        formatter: "money", formatterParams: { decimal: ".", thousand: ",", symbol: "",
+                            precision: 2 }, headerSort: true, sorter: "number" },
+                    { title: "Siperf 2026 (m²)", field: "siperfaqja_2026", width: 120, hozAlign: "right",
+                        editor: (role === 'admin') ? "number" : false, editorParams: { step: 0.1, min: 0 },
+                        formatter: "money", formatterParams: { decimal: ".", thousand: ",", symbol: "",
+                            precision: 2 }, headerSort: true, sorter: "number" },
+                    { title: "Pronari", field: "pronari", width: 170, editor: (role === 'admin') ? "input" : false,
+                        headerSort: true },
+                    { title: "Dokumenti", field: "dokumenti", width: 210, editor: (role === 'admin') ? "textarea" :
+                            false, formatter: "textarea", headerSort: true, variableHeight: true },
+                    { title: "Burimi", field: "burimi_dokumentit", width: 170, editor: (role === 'admin') ? "input" :
+                            false, headerSort: true },
+                    { title: "Komente", field: "komente", width: 230, editor: (role === 'admin') ? "textarea" : false,
+                        formatter: "textarea", headerSort: true, variableHeight: true }
+                ];
+                if (role === 'admin') {
+                    baseColumns.push({
+                        title: "Fshij",
+                        field: "delete",
+                        formatter: "buttonCross",
+                        width: 60,
+                        hozAlign: "center",
+                        headerSort: false,
+                        cellClick: async function(e, cell) {
+                            const rowData = cell.getRow().getData();
+                            const confirmed = await showConfirm(
+                                "Fshije parcelën?",
+                                `A jeni të sigurt që doni të fshini parcelën me Nr.Rendor <strong>${rowData.numri_rendor}</strong> dhe Nr.1978 <strong>${rowData.nr_parceles_1978 || '—'}</strong>?<br><small>Ky veprim nuk mund të zhbëhet.</small>`,
+                                "Fshije", "Anulo"
+                            );
+                            if (confirmed) {
+                                try {
+                                    await db.parcels.delete(rowData.id);
+                                    await renumberAllParcels(true);
+                                    await loadTableData();
+                                    showMessage("Parcela u fshi dhe numrat u rregulluan!", "success");
+                                } catch (err) {
+                                    showMessage("Gabim gjatë fshirjes.", "error");
+                                }
+                            }
+                        }
+                    });
+                }
+                return baseColumns;
+            }
+
+            // ═══════════ INIT Tabulator GRID ═══════════
+            async function initGrid(role) {
+                if (currentTable) {
+                    currentTable.destroy();
+                    currentTable = null;
+                }
+                const data = await db.parcels.toArray();
+                currentTable = new Tabulator("#excel-grid", {
+                    data: data,
+                    layout: "fitColumns",
+                    responsiveLayout: "collapse",
+                    pagination: "local",
+                    paginationSize: 25,
+                    paginationSizeSelector: [15, 25, 50, 100, 200],
+                    paginationCounter: "rows",
+                    movableColumns: true,
+                    columnDefaults: {
+                        resizable: true,
+                    },
+                    placeholder: "Nuk ka të dhëna. Shtoni parcela ose ngarkoni Excel.",
+                    columns: getColumns(role),
+                    rowFormatter: function(row) {
+                        // Alternate row shading is handled by CSS
+                    },
+                });
+
+                // Global search
+                const searchInput = $('#globalSearch');
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.addEventListener('input', function() {
+                        const term = this.value.toLowerCase().trim();
+                        if (currentTable) {
+                            if (term === '') {
+                                currentTable.clearFilter();
+                            } else {
+                                currentTable.setFilter(function(data) {
+                                    // Search across all fields
+                                    const searchable = [
+                                        data.numri_rendor,
+                                        data.zona_kadastrale,
+                                        data.nr_parceles_1978,
+                                        data.nr_parceles_2026,
+                                        data.siperfaqja_1978,
+                                        data.siperfaqja_shpronesuar,
+                                        data.siperfaqja_2026,
+                                        data.pronari,
+                                        data.dokumenti,
+                                        data.burimi_dokumentit,
+                                        data.komente
+                                    ];
+                                    return searchable.some(v =>
+                                        String(v ?? '').toLowerCase().includes(term)
+                                    );
+                                });
+                            }
+                        }
+                    });
+                }
+
+                // Cell edit handler (admin only)
+                if (role === 'admin') {
+                    currentTable.on("cellEdited", async (cell) => {
+                        try {
+                            const rowData = cell.getRow().getData();
+                            if (rowData.id) {
+                                await db.parcels.update(rowData.id, rowData);
+                                showMessage("Ndryshimi u ruajt ✓", "success");
+                                await updateStats();
+                            }
+                        } catch (err) {
+                            showMessage("Gabim gjatë ruajtjes së ndryshimit.", "error");
+                        }
+                    });
+                }
+
+                await updateStats();
+            }
+
+            // ═══════════ ADD NEW PARCEL ═══════════
+            async function addNewParcel() {
+                try {
+                    const all = await db.parcels.toArray();
+                    const maxRendor = all.length ? Math.max(...all.map(p => p.numri_rendor || 0)) : 0;
+                    const newParcel = {
+                        numri_rendor: maxRendor + 1,
+                        zona_kadastrale: "Mrasor",
+                        nr_parceles_1978: "",
+                        nr_parceles_2026: "",
+                        siperfaqja_1978: 0,
+                        siperfaqja_shpronesuar: 0,
+                        siperfaqja_2026: 0,
+                        pronari: "",
+                        dokumenti: "",
+                        burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                        komente: ""
+                    };
+                    const id = await db.parcels.add(newParcel);
+                    await renumberAllParcels(true);
+                    await loadTableData();
+                    await initGrid(currentRole);
+                    // Scroll to the new row
+                    if (currentTable) {
+                        const row = currentTable.getRows().find(r => r.getData().id === id);
+                        if (row) {
+                            currentTable.scrollToRow(row);
+                        }
+                    }
+                    showMessage("Parcelë e re u shtua dhe numrat u rregulluan!", "success");
+                } catch (err) {
+                    showMessage("Gabim gjatë shtimit të parcelës.", "error");
+                }
+            }
+
+            // ═══════════ STYLED EXCEL EXPORT (ExcelJS) ═══════════
+            async function exportToExcel() {
+                try {
+                    const allData = await db.parcels.toArray();
+                    if (allData.length === 0) {
+                        showMessage("Nuk ka të dhëna për eksport!", "error");
+                        return;
+                    }
+
+                    const workbook = new ExcelJS.Workbook();
+                    const worksheet = workbook.addWorksheet("Shpronesimi_1978_2026");
+
+                    // ── Title row ──
+                    worksheet.mergeCells('A1:K1');
+                    const titleCell = worksheet.getCell('A1');
+                    titleCell.value = 'MRASOR — Shpronesimi 1978–2026 · Të Dhënat Kadastrale';
+                    titleCell.style = {
+                        font: { bold: true, size: 16, color: { argb: 'FF1f5e7a' } },
+                        alignment: { horizontal: 'center', vertical: 'middle' },
+                        fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F4F9' } },
+                    };
+                    worksheet.getRow(1).height = 36;
+
+                    // ── Metadata row ──
+                    worksheet.mergeCells('A2:K2');
+                    const metaCell = worksheet.getCell('A2');
+                    const now = new Date();
+                    const dateStr = now.toLocaleDateString('sq-AL', { day: '2-digit', month: '2-digit',
+                        year: 'numeric' });
+                    const timeStr = now.toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit' });
+                    metaCell.value =
+                        `Eksportuar: ${dateStr} ${timeStr} | Total parcela: ${allData.length} | Pronarë unikë: ${new Set(allData.map(p=>p.pronari).filter(Boolean)).size}`;
+                    metaCell.style = {
+                        font: { italic: true, size: 10, color: { argb: 'FF7b8c9b' } },
+                        alignment: { horizontal: 'center', vertical: 'middle' },
+                    };
+                    worksheet.getRow(2).height = 22;
+
+                    // ── Header row (row 3) ──
+                    const headers = [
+                        { header: "Nr. Rendor", key: "numri_rendor", width: 10 },
+                        { header: "Zona Kadastrale", key: "zona_kadastrale", width: 14 },
+                        { header: "Nr Parceles 1978", key: "nr_parceles_1978", width: 15 },
+                        { header: "Nr Parceles 2026", key: "nr_parceles_2026", width: 15 },
+                        { header: "Siperfaqja 1978 (m²)", key: "siperfaqja_1978", width: 17 },
+                        { header: "Siperfaqja e Shpronesuar (m²)", key: "siperfaqja_shpronesuar", width: 22 },
+                        { header: "Siperfaqja 2026 (m²)", key: "siperfaqja_2026", width: 17 },
+                        { header: "Pronari", key: "pronari", width: 22 },
+                        { header: "Dokumenti", key: "dokumenti", width: 38 },
+                        { header: "Burimi i Dokumentit", key: "burimi_dokumentit", width: 32 },
+                        { header: "Komente", key: "komente", width: 45 },
+                    ];
+
+                    worksheet.columns = headers;
+                    const headerRow = worksheet.getRow(3);
+                    headerRow.height = 28;
+                    headers.forEach((h, idx) => {
+                        const cell = headerRow.getCell(idx + 1);
+                        cell.value = h.header;
+                        cell.style = {
+                            font: { bold: true, color: { argb: 'FFFFFFFF' }, size: 11 },
+                            fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2c7da0' } },
+                            alignment: { horizontal: 'center', vertical: 'middle', wrapText: true },
+                            border: { top: { style: 'thin' }, bottom: { style: 'medium' }, left: { style: 'thin' },
+                                right: { style: 'thin' } },
+                        };
+                    });
+
+                    // ── Data rows ──
+                    allData.forEach((item, rowIndex) => {
+                        const row = worksheet.addRow({
+                            numri_rendor: item.numri_rendor,
+                            zona_kadastrale: item.zona_kadastrale || "",
+                            nr_parceles_1978: item.nr_parceles_1978 || "",
+                            nr_parceles_2026: item.nr_parceles_2026 || "",
+                            siperfaqja_1978: Number(item.siperfaqja_1978) || 0,
+                            siperfaqja_shpronesuar: Number(item.siperfaqja_shpronesuar) || 0,
+                            siperfaqja_2026: Number(item.siperfaqja_2026) || 0,
+                            pronari: item.pronari || "",
+                            dokumenti: item.dokumenti || "",
+                            burimi_dokumentit: item.burimi_dokumentit || "",
+                            komente: item.komente || "",
+                        });
+                        const fillColor = (rowIndex % 2 === 0) ? 'FFFFFFFF' : 'FFF7FAFC';
+                        row.eachCell({ includeEmpty: true }, (cell) => {
+                            const colKey = worksheet.getColumn(cell.col).key;
+                            cell.style = {
+                                alignment: { vertical: 'top', wrapText: true },
+                                border: { top: { style: 'thin' }, bottom: { style: 'thin' },
+                                    left: { style: 'thin' }, right: { style: 'thin' } },
+                                fill: { type: 'pattern', pattern: 'solid', fgColor: { argb: fillColor } },
+                            };
+                            if (colKey && colKey.startsWith('siperfaqja')) {
+                                cell.numFmt = '#,##0.00';
+                            }
+                        });
+                        row.height = 32;
+                    });
+
+                    // ── Auto-filter & freeze ──
+                    worksheet.autoFilter = {
+                        from: { row: 3, column: 1 },
+                        to: { row: 3 + allData.length, column: headers.length },
+                    };
+                    worksheet.views = [{ state: 'frozen', ySplit: 3 }];
+
+                    // ── Write & download ──
+                    const buffer = await workbook.xlsx.writeBuffer();
+                    const blob = new Blob([buffer], {
+                        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    link.href = url;
+                    const safeDate = now.toISOString().slice(0, 19).replace(/:/g, '-');
+                    link.download = `Mrasor_Shpronesimi_${safeDate}.xlsx`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showMessage("Eksporti Excel i formatuar u krye me sukses!", "success");
+                } catch (err) {
+                    console.error('Excel export error:', err);
+                    showMessage("Gabim gjatë eksportit Excel. Provo përsëri.", "error");
+                }
+            }
+
+            // ═══════════ CSV EXPORT ═══════════
+            async function exportToCsv() {
+                try {
+                    const allData = await db.parcels.toArray();
+                    if (allData.length === 0) {
+                        showMessage("Nuk ka të dhëna për eksport!", "error");
+                        return;
+                    }
+                    const headers = [
+                        "Numri rendor", "Zona Kadastrale", "Nr parceles 1978", "Nr parceles 2026",
+                        "Siperfaqja 1978 (m2)", "Siperfaqja e shpronesuar (m2)", "Siperfaqja 2026 (m2)",
+                        "Pronari", "Dokumenti", "Burimi i Dokumentit", "Komente"
+                    ];
+                    const escapeCsv = (val) => {
+                        const str = String(val ?? '');
+                        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                            return '"' + str.replace(/"/g, '""') + '"';
+                        }
+                        return str;
+                    };
+                    const lines = [headers.map(escapeCsv).join(',')];
+                    allData.forEach(item => {
+                        const row = [
+                            item.numri_rendor, item.zona_kadastrale, item.nr_parceles_1978,
+                            item.nr_parceles_2026,
+                            item.siperfaqja_1978, item.siperfaqja_shpronesuar, item.siperfaqja_2026,
+                            item.pronari, item.dokumenti, item.burimi_dokumentit, item.komente
+                        ];
+                        lines.push(row.map(escapeCsv).join(','));
+                    });
+                    const csvContent = '\uFEFF' + lines.join('\n'); // BOM for Excel UTF-8
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    link.href = url;
+                    const safeDate = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                    link.download = `Mrasor_Shpronesimi_${safeDate}.csv`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showMessage("Eksporti CSV u krye me sukses!", "success");
+                } catch (err) {
+                    console.error('CSV export error:', err);
+                    showMessage("Gabim gjatë eksportit CSV.", "error");
+                }
+            }
+
+            // ═══════════ BACKUP TO JSON ═══════════
+            async function backupToJson() {
+                try {
+                    const allData = await db.parcels.toArray();
+                    if (allData.length === 0) {
+                        showMessage("Nuk ka të dhëna për backup!", "error");
+                        return;
+                    }
+                    const backup = {
+                        version: "1.0",
+                        exportedAt: new Date().toISOString(),
+                        totalRecords: allData.length,
+                        data: allData.map(({ id, ...rest }) => rest), // exclude internal id
+                    };
+                    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    const url = URL.createObjectURL(blob);
+                    link.href = url;
+                    const safeDate = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                    link.download = `Mrasor_Backup_${safeDate}.json`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    showMessage("Backup u ruajt si JSON!", "success");
+                } catch (err) {
+                    console.error('Backup error:', err);
+                    showMessage("Gabim gjatë backup-it.", "error");
+                }
+            }
+
+            // ═══════════ RESTORE FROM JSON ═══════════
+            async function restoreFromJson(file) {
+                if (!file) return;
+                try {
+                    const text = await file.text();
+                    const backup = JSON.parse(text);
+                    if (!backup.data || !Array.isArray(backup.data)) {
+                        throw new Error('Format i pavlefshëm');
+                    }
+                    const confirmed = await showConfirm(
+                        "Rikthimi nga backup",
+                        `Jeni duke rikthyer <strong>${backup.data.length}</strong> parcela nga backup-i i datës <strong>${backup.exportedAt || 'e panjohur'}</strong>.<br><br><strong>Kujdes:</strong> Të gjitha të dhënat aktuale do të zëvendësohen. Vazhdoni?`,
+                        "Rikthe", "Anulo"
+                    );
+                    if (!confirmed) return;
+
+                    await db.parcels.clear();
+                    const toAdd = backup.data.map((item, i) => ({
+                        ...item,
+                        numri_rendor: i + 1,
+                    }));
+                    await db.parcels.bulkAdd(toAdd);
+                    await renumberAllParcels(true);
+                    await loadTableData();
+                    await initGrid(currentRole);
+                    showMessage(`Rikthimi u krye! ${toAdd.length} parcela të ngarkuara.`, "success");
+                } catch (err) {
+                    console.error('Restore error:', err);
+                    showMessage("Gabim gjatë rikthimit. Sigurohuni që file është JSON valid.", "error");
+                }
+            }
+
+            // ═══════════ UPLOAD EXCEL ═══════════
+            async function handleUpload(file) {
+                if (!file) return;
+                try {
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const rows = XLSX.utils.sheet_to_json(firstSheet);
+
+                        if (!rows || rows.length === 0) {
+                            showMessage("File Excel është bosh!", "error");
+                            return;
+                        }
+
+                        const fileHeaders = Object.keys(rows[0] || {}).map(h => String(h).toLowerCase()
+                            .trim());
+                        const required = ["numri rendor", "nr parceles 1978"];
+                        const missing = required.filter(r => !fileHeaders.some(h => h.includes(r)));
+                        if (missing.length > 0) {
+                            showMessage(
+                                `Kolonat e nevojshme mungojnë: ${missing.join(", ")}. Kontrollo header-at.`,
+                                "error");
+                            return;
+                        }
+
+                        const existingRendors = new Set();
+                        const allExisting = await db.parcels.toArray();
+                        allExisting.forEach(p => existingRendors.add(p.numri_rendor));
+
+                        let addedCount = 0;
+                        let skippedCount = 0;
+                        const newParcelsToAdd = [];
+
+                        for (let row of rows) {
+                            let numriRendor = row["Numri rendor"] ?? row["numri rendor"] ?? null;
+                            if (numriRendor === undefined || numriRendor === null) continue;
+                            numriRendor = Number(numriRendor);
+                            if (isNaN(numriRendor)) continue;
+
+                            if (existingRendors.has(numriRendor)) {
+                                skippedCount++;
+                                continue;
+                            }
+
+                            const newParcel = {
+                                numri_rendor: numriRendor,
+                                zona_kadastrale: row["Zona Kadastrale"] ?? row["zona kadastrale"] ??
+                                    "Mrasor",
+                                nr_parceles_1978: row["Nr parceles 1978"] ?? row["nr parceles 1978"] ?? "",
+                                nr_parceles_2026: row["Nr parceles 2026"] ?? row["nr parceles 2026"] ?? "",
+                                siperfaqja_1978: parseFloat(row["Siperfaqja 1978 (m2)"] ?? row[
+                                    "siperfaqja 1978 (m2)"] ?? 0) || 0,
+                                siperfaqja_shpronesuar: parseFloat(row["Siperfaqja e shpronesuar (m2)"] ??
+                                    row["siperfaqja e shpronesuar (m2)"] ?? 0) || 0,
+                                siperfaqja_2026: parseFloat(row["Siperfaqja 2026 (m2)"] ?? row[
+                                    "siperfaqja 2026 (m2)"] ?? 0) || 0,
+                                pronari: row["Pronari"] ?? row["pronari"] ?? "",
+                                dokumenti: row["Dokumenti"] ?? row["dokumenti"] ?? "",
+                                burimi_dokumentit: row["Burimi i Dokumentit"] ?? row[
+                                    "burimi i dokumentit"] ?? "",
+                                komente: row["Komente"] ?? row["komente"] ?? "",
+                            };
+                            newParcelsToAdd.push(newParcel);
+                            addedCount++;
+                            existingRendors.add(numriRendor);
+                        }
+
+                        if (newParcelsToAdd.length > 0) {
+                            await db.parcels.bulkAdd(newParcelsToAdd);
+                            await renumberAllParcels(true);
+                        }
+
+                        await loadTableData();
+                        await initGrid(currentRole);
+                        showMessage(
+                            `Upload përfundoi: ${addedCount} të reja, ${skippedCount} të injoruara (ekzistuese). Numrat u rregulluan.`,
+                            "success");
+                    };
+                    reader.readAsArrayBuffer(file);
+                } catch (err) {
+                    console.error('Upload error:', err);
+                    showMessage("Gabim gjatë leximit të file Excel.", "error");
+                }
+            }
+
+            function triggerUpload() {
+                $('#uploadInput').click();
+            }
+
+            function triggerRestore() {
+                $('#restoreInput').click();
+            }
+
+            // ═══════════ SETUP APP ═══════════
+            async function setupApp(role) {
+                currentRole = role;
+                await seedInitialData();
+                await initGrid(role);
+
+                const addBtn = $('#addNewRowBtn');
+                const exportExcelBtn = $('#exportExcelBtn');
+                const exportCsvBtn = $('#exportCsvBtn');
+                const uploadBtn = $('#uploadExcelBtn');
+                const backupBtn = $('#backupBtn');
+                const restoreBtn = $('#restoreBtn');
+
+                const isAdmin = (role === 'admin');
+                const display = (el, show) => { if (el) el.style.display = show ? 'inline-flex' : 'none'; };
+
+                display(addBtn, isAdmin);
+                display(exportExcelBtn, isAdmin);
+                display(exportCsvBtn, isAdmin);
+                display(uploadBtn, isAdmin);
+                display(backupBtn, isAdmin);
+                display(restoreBtn, isAdmin);
+
+                if (isAdmin) {
+                    addBtn.onclick = addNewParcel;
+                    exportExcelBtn.onclick = exportToExcel;
+                    exportCsvBtn.onclick = exportToCsv;
+                    uploadBtn.onclick = triggerUpload;
+                    backupBtn.onclick = backupToJson;
+                    restoreBtn.onclick = triggerRestore;
+                }
+
+                $('#logoutBtn').onclick = async () => {
+                    const confirmed = await showConfirm(
+                        "Dilni nga platforma?",
+                        "Të dhënat ruhen automatikisht. A doni të dilni?",
+                        "Dil", "Qëndro"
+                    );
+                    if (confirmed) {
+                        $('#loginScreen').style.display = 'flex';
+                        $('#appContainer').style.display = 'none';
+                        if (currentTable) {
+                            currentTable.destroy();
+                            currentTable = null;
+                        }
+                        currentRole = null;
+                        $('#loginPassword').value = '';
+                        $('#loginError').innerText = '';
+                        // Clear toasts
+                        $('#toastContainer').innerHTML = '';
+                    }
+                };
+
+                $('#appContainer').style.display = 'flex';
+            }
+
+            // ═══════════ LOGIN HANDLERS ═══════════
+            function adminLogin() {
+                const password = $('#loginPassword').value;
+                if (password === "news2026") {
+                    $('#loginError').innerText = "";
+                    $('#loginScreen').style.display = 'none';
+                    setupApp('admin');
+                } else {
+                    $('#loginError').innerText = "Fjalëkalimi i adminit është i pasaktë!";
+                    $('#loginPassword').value = '';
+                    $('#loginPassword').focus();
+                }
+            }
+
+            function viewerLogin() {
+                $('#loginError').innerText = "";
+                $('#loginScreen').style.display = 'none';
+                setupApp('viewer');
+            }
+
+            // ═══════════ EVENT LISTENERS ═══════════
+            $('#adminLoginBtn').addEventListener('click', adminLogin);
+            $('#viewerLoginBtn').addEventListener('click', viewerLogin);
+            $('#loginPassword').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') adminLogin();
+            });
+            $('#loginUsername').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    if ($('#loginPassword').value.length > 0) adminLogin();
+                    else viewerLogin();
+                }
+            });
+
+            // File input listeners
+            $('#uploadInput').addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    handleUpload(e.target.files[0]);
+                }
+                e.target.value = '';
+            });
+            $('#restoreInput').addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    restoreFromJson(e.target.files[0]);
+                }
+                e.target.value = '';
+            });
+
+            // ═══════════ KEYBOARD SHORTCUTS ═══════════
+            document.addEventListener('keydown', function(e) {
+                if (!currentRole || $('#appContainer').style.display === 'none') return;
+                const ctrl = e.ctrlKey || e.metaKey;
+                if (ctrl && e.key === 's') {
+                    e.preventDefault();
+                    if (currentRole === 'admin') exportToExcel();
+                }
+                if (ctrl && e.key === 'f') {
+                    e.preventDefault();
+                    const searchInput = $('#globalSearch');
+                    if (searchInput) searchInput.focus();
+                }
+                if (ctrl && e.key === 'n') {
+                    e.preventDefault();
+                    if (currentRole === 'admin') addNewParcel();
+                }
+                if (e.key === 'Escape') {
+                    const searchInput = $('#globalSearch');
+                    if (searchInput && document.activeElement === searchInput) {
+                        searchInput.value = '';
+                        searchInput.dispatchEvent(new Event('input'));
+                        searchInput.blur();
+                    }
+                }
+            });
+
+            // ═══════════ INITIAL STATE ═══════════
+            // App starts hidden, login screen visible
+            $('#appContainer').style.display = 'none';
+            $('#loginScreen').style.display = 'flex';
+            // Focus username on load
+            setTimeout(() => $('#loginUsername').focus(), 300);
+
+            console.log('✅ Mrasor Platform initialized. Embedded data: 22 parcela (numrat rendor 1-22 unikë).');
+            console.log('ℹ️ Admin password: news2026 | Viewer: kliko butonin pa fjalëkalim.');
+            console.log('⌨️ Shortcuts: Ctrl+S = Eksport Excel | Ctrl+F = Kërko | Ctrl+N = Shto parcelë | Esc = Pastro kërkimin');
+
+        })();
+    </script>
+</body>
+</html>
