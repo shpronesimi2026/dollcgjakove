@@ -83,9 +83,10 @@
         .btn-icon:hover { background: #e2e8f0; transform: translateY(-1px); }
         .btn-excel { background: var(--accent-green); color: white; }
         .btn-add { background: var(--primary-light); color: white; }
-        .btn-upload { background: var(--accent-orange); color: white; }
+        .btn-sync { background: var(--primary-light); color: white; }
         .btn-backup { background: #6b5b95; color: white; }
         .btn-logout { background: #fee2e2; color: #991b1b; }
+        .last-update { font-size: 0.7rem; color: var(--text-muted); background: #f1f5f9; padding: 4px 12px; border-radius: 50px; }
         .table-wrapper { flex: 1; padding: 12px 16px; overflow: auto; background: #f9fbfd; }
         #excel-grid { border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md); background: white; }
         .tabulator { font-size: 0.84rem !important; border: none !important; }
@@ -161,8 +162,9 @@
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" class="search-input" id="globalSearch" placeholder="Kërko...">
             </div>
+            <div class="last-update" id="lastUpdateBadge">📡 Duke u ngarkuar...</div>
+            <button id="syncFromGitBtn" class="btn-icon btn-sync" style="display:none;"><i class="fas fa-sync-alt"></i> <span class="btn-label">Sinkro</span></button>
             <button id="exportExcelBtn" class="btn-icon btn-excel" style="display:none;"><i class="fas fa-file-excel"></i> <span class="btn-label">Excel</span></button>
-            <button id="exportCsvBtn" class="btn-icon" style="display:none;"><i class="fas fa-file-csv"></i> <span class="btn-label">CSV</span></button>
             <button id="backupBtn" class="btn-icon btn-backup" style="display:none;"><i class="fas fa-download"></i> <span class="btn-label">Backup</span></button>
             <button id="restoreBtn" class="btn-icon" style="display:none;"><i class="fas fa-upload"></i> <span class="btn-label">Rikthe</span></button>
             <button id="addNewRowBtn" class="btn-icon btn-add" style="display:none;"><i class="fas fa-plus"></i> <span class="btn-label">Shto</span></button>
@@ -172,7 +174,7 @@
     <div class="table-wrapper">
         <div id="excel-grid"></div>
     </div>
-    <footer>✎ Admin: kliko qelizën për edit | Eksport Excel/CSV | Backup JSON | <span class="kb-shortcut">Ctrl+S</span> <span class="kb-shortcut">Ctrl+F</span> <span class="kb-shortcut">Ctrl+N</span></footer>
+    <footer>📁 Të dhënat merren nga GitHub: <strong>Mrasor.xlsx</strong> | Butoni Sinkronizo merr versionin e fundit | ✎ Admin: kliko qelizën për edit | <span class="kb-shortcut">Ctrl+S</span> <span class="kb-shortcut">Ctrl+F</span> <span class="kb-shortcut">Ctrl+N</span></footer>
 </div>
 
 <div class="toast-container" id="toastContainer"></div>
@@ -185,50 +187,16 @@
 
 <script>
 (function() {
-    // ==================== TË DHËNAT E PLOTA NGA EXCEL (39 parcela) ====================
-    const embeddedParcels = [
-        { numri_rendor:1, zona_kadastrale:"Mrasor", nr_parceles_1978:"258-0", nr_parceles_2026:"258-1", siperfaqja_1978:8777, siperfaqja_shpronesuar:860, siperfaqja_2026:1252, pronari:"Tahir Ali Mrasoraj", dokumenti:"Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Parcela ne Dokumentacionin e shpronesimit te vitit 1978 ka qene e pandare,parcela ne gjendjen tash te vitit 2026 eshte e ndare ne 4 pjese,ku me ndarjet e reja vetem parcela me nr 258-1 perfshihet ne shpronesim.Nga linja e shpronesimit siperfaqja qe shpronesohet eshte 658 m2" },
-        { numri_rendor:2, zona_kadastrale:"Mrasor", nr_parceles_1978:"260-0", nr_parceles_2026:"260-1", siperfaqja_1978:3635, siperfaqja_shpronesuar:104, siperfaqja_2026:1280, pronari:"Tahir Ali Mrasoraj", dokumenti:"Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Nga linjat e shpronesimit parcela 260-1 siperfaqe 104 m2" },
-        { numri_rendor:3, zona_kadastrale:"Mrasor", nr_parceles_1978:"260-0", nr_parceles_2026:"260-2", siperfaqja_1978:3635, siperfaqja_shpronesuar:818, siperfaqja_2026:1113, pronari:"Tahir Ali Mrasoraj", dokumenti:"Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Ndarje e re nga parcela origjinale 260-0" },
-        { numri_rendor:4, zona_kadastrale:"Mrasor", nr_parceles_1978:"261-0", nr_parceles_2026:"261-0", siperfaqja_1978:3126, siperfaqja_shpronesuar:275, siperfaqja_2026:3121, pronari:"Tahir Ali Mrasoraj", dokumenti:"Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 183m2" },
-        { numri_rendor:5, zona_kadastrale:"Mrasor", nr_parceles_1978:"268-0", nr_parceles_2026:"268-0", siperfaqja_1978:962, siperfaqja_shpronesuar:20, siperfaqja_2026:979, pronari:"Haxhi Danë Mrasoraj", dokumenti:"Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 60m2" },
-        { numri_rendor:6, zona_kadastrale:"Mrasor", nr_parceles_1978:"269-0", nr_parceles_2026:"269-0", siperfaqja_1978:5293, siperfaqja_shpronesuar:2430, siperfaqja_2026:5316, pronari:"Haxhi Danë Mrasoraj", dokumenti:"Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 2380m2" },
-        { numri_rendor:7, zona_kadastrale:"Mrasor", nr_parceles_1978:"247-0", nr_parceles_2026:"247-0", siperfaqja_1978:9196, siperfaqja_shpronesuar:415, siperfaqja_2026:9977, pronari:"Salih Haxhi Mrasoraj", dokumenti:"Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 325m2" },
-        { numri_rendor:8, zona_kadastrale:"Mrasor", nr_parceles_1978:"425-0", nr_parceles_2026:"425-0", siperfaqja_1978:0, siperfaqja_shpronesuar:365, siperfaqja_2026:8564, pronari:"Haxhi Danë Mrasoraj", dokumenti:"Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 197m2" },
-        { numri_rendor:9, zona_kadastrale:"Mrasor", nr_parceles_1978:"254-0", nr_parceles_2026:"254-0", siperfaqja_1978:6579, siperfaqja_shpronesuar:320, siperfaqja_2026:6547, pronari:"Zenel Ali Mrasoraj", dokumenti:"Lenda Zenel Ali Mrasoraj Nr.147-78 ZK Mrasor KK Rahovec,parcelat kadastrale 254-0,255-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 255m2" },
-        { numri_rendor:10, zona_kadastrale:"Mrasor", nr_parceles_1978:"255-0", nr_parceles_2026:"255-0", siperfaqja_1978:342, siperfaqja_shpronesuar:282, siperfaqja_2026:342, pronari:"Zenel Ali Mrasoraj", dokumenti:"Lenda Zenel Ali Mrasoraj Nr.147-78 ZK Mrasor KK Rahovec,parcelat kadastrale 254-0,255-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 289m2" },
-        { numri_rendor:11, zona_kadastrale:"Mrasor", nr_parceles_1978:"264-0", nr_parceles_2026:"264-0", siperfaqja_1978:1202, siperfaqja_shpronesuar:350, siperfaqja_2026:1205, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 389m2" },
-        { numri_rendor:12, zona_kadastrale:"Mrasor", nr_parceles_1978:"265-0", nr_parceles_2026:"265-0", siperfaqja_1978:706, siperfaqja_shpronesuar:706, siperfaqja_2026:704, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"E gjithe parcela shpronesohet" },
-        { numri_rendor:13, zona_kadastrale:"Mrasor", nr_parceles_1978:"230-0", nr_parceles_2026:"230-0", siperfaqja_1978:6785, siperfaqja_shpronesuar:2000, siperfaqja_2026:6791, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1788m2" },
-        { numri_rendor:14, zona_kadastrale:"Mrasor", nr_parceles_1978:"229-0", nr_parceles_2026:"229-0", siperfaqja_1978:4003, siperfaqja_shpronesuar:1225, siperfaqja_2026:3975, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1006m2" },
-        { numri_rendor:15, zona_kadastrale:"Mrasor", nr_parceles_1978:"239-0", nr_parceles_2026:"239-0", siperfaqja_1978:4222, siperfaqja_shpronesuar:215, siperfaqja_2026:4221, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 325m2" },
-        { numri_rendor:16, zona_kadastrale:"Mrasor", nr_parceles_1978:"379-0", nr_parceles_2026:"379-0", siperfaqja_1978:8718, siperfaqja_shpronesuar:2175, siperfaqja_2026:8774, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1641m2" },
-        { numri_rendor:17, zona_kadastrale:"Mrasor", nr_parceles_1978:"380-0", nr_parceles_2026:"380-0", siperfaqja_1978:1440, siperfaqja_shpronesuar:250, siperfaqja_2026:1444, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 293m2" },
-        { numri_rendor:18, zona_kadastrale:"Mrasor", nr_parceles_1978:"267-1", nr_parceles_2026:"267-1", siperfaqja_1978:2956, siperfaqja_shpronesuar:1650, siperfaqja_2026:2968, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1947 m2" },
-        { numri_rendor:19, zona_kadastrale:"Mrasor", nr_parceles_1978:"241-2", nr_parceles_2026:"", siperfaqja_1978:900, siperfaqja_shpronesuar:0, siperfaqja_2026:0, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"" },
-        { numri_rendor:20, zona_kadastrale:"Mrasor", nr_parceles_1978:"238-0", nr_parceles_2026:"238-3", siperfaqja_1978:525, siperfaqja_shpronesuar:525, siperfaqja_2026:306, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Parcela ne Dokumentacionin e shpronesimit te vitit 1978 ka qene e pandare,parcela ne gjendjen tash te vitit 2026 eshte e ndare ne 3 pjese ne grafik,ku me ndarjet e reja vetem parcela me nr 238-3 perfshihet ne baze te linjes se shpronesimit shpronesohet e gjitha me siperfaqe 306 m2" },
-        { numri_rendor:21, zona_kadastrale:"Mrasor", nr_parceles_1978:"376-0", nr_parceles_2026:"376-5", siperfaqja_1978:0, siperfaqja_shpronesuar:1930, siperfaqja_2026:1471, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Parcela ne Dokumentacionin e shpronesimit te vitit 1978 ka qene e pandare,parcela ne gjendjen tash te vitit 2026 eshte e ndare ne 5 pjese ne grafik,ku me ndarjet e reja vetem parcela me nr 376-5 perfshihet ne baze te linjes se shpronesimit shpronesohet e gjitha me siperfaqe 1471 m2" },
-        { numri_rendor:22, zona_kadastrale:"Mrasor", nr_parceles_1978:"417-0", nr_parceles_2026:"417-0", siperfaqja_1978:0, siperfaqja_shpronesuar:310, siperfaqja_2026:3269, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 311 m2" },
-        { numri_rendor:23, zona_kadastrale:"Mrasor", nr_parceles_1978:"2-0", nr_parceles_2026:"2-0", siperfaqja_1978:1046, siperfaqja_shpronesuar:395, siperfaqja_2026:1078, pronari:"Qazim Cakë Berisha", dokumenti:"Lenda Qazim Cake Berisha Nr.152-72 ZK Mrasor KK Rahovec,parcelat kadastrale 2-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 395m2" },
-        { numri_rendor:24, zona_kadastrale:"Mrasor", nr_parceles_1978:"1-0", nr_parceles_2026:"1-3", siperfaqja_1978:4086, siperfaqja_shpronesuar:1580, siperfaqja_2026:1097, pronari:"Isuf Ukë Berisha", dokumenti:"Lenda Isuf Ukë Berisha Nr.153-72 ZK Mrasor KK Rahovec,parcelat kadastrale 1-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1097m2" },
-        { numri_rendor:25, zona_kadastrale:"Mrasor", nr_parceles_1978:"509-0", nr_parceles_2026:"509-0", siperfaqja_1978:24227, siperfaqja_shpronesuar:9800, siperfaqja_2026:22870, pronari:"Ndërrmarrja transportuese hekurudhore Beograd", dokumenti:"Lenda Ndërrmarrja transportuese hekurudhore Beograd Nr.155-78 ZK Mrasor KK Rahovec,parcela kadastrale 509-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 8702 m2" },
-        { numri_rendor:26, zona_kadastrale:"Mrasor", nr_parceles_1978:"10-0", nr_parceles_2026:"10-0", siperfaqja_1978:5714, siperfaqja_shpronesuar:1580, siperfaqja_2026:5701, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1722 m2" },
-        { numri_rendor:27, zona_kadastrale:"Mrasor", nr_parceles_1978:"8-0", nr_parceles_2026:"8-0", siperfaqja_1978:35253, siperfaqja_shpronesuar:2060, siperfaqja_2026:35693, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1883 m2" },
-        { numri_rendor:28, zona_kadastrale:"Mrasor", nr_parceles_1978:"9-0", nr_parceles_2026:"9-0", siperfaqja_1978:25468, siperfaqja_shpronesuar:625, siperfaqja_2026:25604, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 321m2" },
-        { numri_rendor:29, zona_kadastrale:"Mrasor", nr_parceles_1978:"15-0", nr_parceles_2026:"15-0", siperfaqja_1978:275719, siperfaqja_shpronesuar:3090, siperfaqja_2026:275683, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 3048m2" },
-        { numri_rendor:30, zona_kadastrale:"Mrasor", nr_parceles_1978:"14-0", nr_parceles_2026:"14-0", siperfaqja_1978:701, siperfaqja_shpronesuar:701, siperfaqja_2026:683, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 610m2" },
-        { numri_rendor:31, zona_kadastrale:"Mrasor", nr_parceles_1978:"94-0", nr_parceles_2026:"94-0", siperfaqja_1978:970, siperfaqja_shpronesuar:410, siperfaqja_2026:967, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 375m2" },
-        { numri_rendor:32, zona_kadastrale:"Mrasor", nr_parceles_1978:"95-0", nr_parceles_2026:"95-0", siperfaqja_1978:752, siperfaqja_shpronesuar:300, siperfaqja_2026:743, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 216m2" },
-        { numri_rendor:33, zona_kadastrale:"Mrasor", nr_parceles_1978:"96-0", nr_parceles_2026:"96-0", siperfaqja_1978:628, siperfaqja_shpronesuar:453, siperfaqja_2026:623, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 478m2" },
-        { numri_rendor:34, zona_kadastrale:"Mrasor", nr_parceles_1978:"99-0", nr_parceles_2026:"99-0", siperfaqja_1978:83, siperfaqja_shpronesuar:83, siperfaqja_2026:83, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"E gjithe parcela shpronesohet" },
-        { numri_rendor:35, zona_kadastrale:"Mrasor", nr_parceles_1978:"82-0", nr_parceles_2026:"82-0", siperfaqja_1978:35625, siperfaqja_shpronesuar:1550, siperfaqja_2026:35624, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1655m2" },
-        { numri_rendor:36, zona_kadastrale:"Mrasor", nr_parceles_1978:"262-0", nr_parceles_2026:"262-0", siperfaqja_1978:2444, siperfaqja_shpronesuar:1419, siperfaqja_2026:2430, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1932m2" },
-        { numri_rendor:37, zona_kadastrale:"Mrasor", nr_parceles_1978:"342-0", nr_parceles_2026:"342-0", siperfaqja_1978:113759, siperfaqja_shpronesuar:3325, siperfaqja_2026:113562, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 3267m2" },
-        { numri_rendor:38, zona_kadastrale:"Mrasor", nr_parceles_1978:"421-0", nr_parceles_2026:"421-0", siperfaqja_1978:671, siperfaqja_shpronesuar:98, siperfaqja_2026:657, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 425m2" },
-        { numri_rendor:39, zona_kadastrale:"Mrasor", nr_parceles_1978:"420-0", nr_parceles_2026:"420-0", siperfaqja_1978:13172, siperfaqja_shpronesuar:1580, siperfaqja_2026:13156, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1710m2" }
+    // ============================================================
+    // URL e Excel-it në GitHub (RAW)
+    // ============================================================
+    const EXCEL_RAW_URL = "https://raw.githubusercontent.com/shpronesimi2026/dollcgjakove/main/Mrasor.xlsx";
+    
+    // Fallback në rast se nuk mund të lexohet Excel-i
+    const fallbackParcels = [
+        { numri_rendor:1, zona_kadastrale:"Mrasor", nr_parceles_1978:"258-0", nr_parceles_2026:"258-1", siperfaqja_1978:8777, siperfaqja_shpronesuar:860, siperfaqja_2026:1252, pronari:"Tahir Ali Mrasoraj", dokumenti:"", burimi_dokumentit:"Komuna e Rahovecit", komente:"" }
     ];
 
-    // Database
     const db = new Dexie("MrasorDB");
     db.version(1).stores({ parcels: "++id, numri_rendor, zona_kadastrale, nr_parceles_1978, nr_parceles_2026, pronari" });
     db.version(2).stores({ metadata: "key" }).upgrade(async tx => {
@@ -245,7 +213,7 @@
         const icons = { info: 'fa-circle-info', error: 'fa-circle-exclamation', success: 'fa-circle-check' };
         toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${text}</span>`;
         container.appendChild(toast);
-        setTimeout(() => toast.remove(), 2500);
+        setTimeout(() => toast.remove(), 3000);
     }
 
     function showConfirm(title, message, confirmText = 'Konfirmo', cancelText = 'Anulo') {
@@ -275,13 +243,94 @@
         await updateStats();
     }
 
-    async function seedInitialData() {
-        const count = await db.parcels.count();
-        if (count === 0) {
-            await db.parcels.bulkAdd(embeddedParcels);
-            showMessage("Të dhënat e plota (39 parcela) u ngarkuan!", "success");
+    async function renumberAllParcels(silent = false) {
+        let all = await db.parcels.toArray();
+        all.sort((a,b) => (a.numri_rendor || 0) - (b.numri_rendor || 0));
+        let needsUpdate = false;
+        const updated = all.map((item, i) => {
+            if (item.numri_rendor !== i+1) {
+                item.numri_rendor = i+1;
+                needsUpdate = true;
+            }
+            return item;
+        });
+        if (needsUpdate) {
+            await db.parcels.bulkPut(updated);
+            if (currentTable) currentTable.setData(updated);
+            if (!silent) showMessage("Numrat rendor u rregulluan!", "success");
         }
-        await loadAndRefresh();
+        await updateStats();
+    }
+
+    // Funksioni kryesor: Lexo Excel-in nga GitHub dhe sinkronizo
+    async function syncFromGitHub(showToastMsg = true) {
+        try {
+            showMessage("Duke lexuar Excel-in nga GitHub...", "info");
+            
+            // Shtojmë timestamp për të shmangur cache-in
+            const urlWithCache = `${EXCEL_RAW_URL}?t=${Date.now()}`;
+            const response = await fetch(urlWithCache);
+            
+            if (!response.ok) throw new Error(`HTTP ${response.status} - Excel-i nuk u gjet`);
+            
+            const arrayBuffer = await response.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet);
+            
+            if (!rows || rows.length === 0) throw new Error("Excel-i është bosh");
+            
+            // Filtro vetëm rreshtat që kanë numër rendor
+            const validRows = rows.filter(row => {
+                const nr = row["Numri rendor"] || row["numri rendor"];
+                return nr && nr.toString().trim() !== "";
+            });
+            
+            if (validRows.length === 0) throw new Error("Nuk u gjetën rreshta me numër rendor");
+            
+            // Konverto në format të parcelave
+            const newParcels = validRows.map((row, idx) => ({
+                numri_rendor: parseInt(row["Numri rendor"] || row["numri rendor"] || idx + 1),
+                zona_kadastrale: row["Zona Kadastrale"] || row["zona kadastrale"] || "Mrasor",
+                nr_parceles_1978: row["Nr parceles 1978"] || row["nr parceles 1978"] || "",
+                nr_parceles_2026: row["Nr parceles 2026"] || row["nr parceles 2026"] || "",
+                siperfaqja_1978: parseFloat(row["Siperfaqja 1978 (m2)"] || row["siperfaqja 1978 (m2)"] || 0),
+                siperfaqja_shpronesuar: parseFloat(row["Siperfaqja e shpronesuar (m2)"] || row["siperfaqja e shpronesuar (m2)"] || 0),
+                siperfaqja_2026: parseFloat(row["Siperfaqja 2026 (m2)"] || row["siperfaqja 2026 (m2)"] || 0),
+                pronari: row["Pronari"] || row["pronari"] || "",
+                dokumenti: row["Dokumenti"] || row["dokumenti"] || "",
+                burimi_dokumentit: row["Burimi i Dokumentit"] || row["burimi i dokumentit"] || "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë",
+                komente: row["Komente"] || row["komente"] || ""
+            }));
+            
+            // Ruaj në database (zëvendëso të gjitha)
+            await db.parcels.clear();
+            await db.parcels.bulkAdd(newParcels);
+            await db.metadata.put({ key: "lastSync", value: new Date().toISOString() });
+            
+            await loadAndRefresh();
+            
+            const lastSync = new Date();
+            $('#lastUpdateBadge').innerHTML = `✅ Përditësuar: ${lastSync.toLocaleDateString('sq-AL')} ${lastSync.toLocaleTimeString('sq-AL')}`;
+            if (showToastMsg) showMessage(`Sinkronizimi u krye! ${newParcels.length} parcela të ngarkuara.`, "success");
+            
+        } catch (err) {
+            console.error("Sync error:", err);
+            const count = await db.parcels.count();
+            if (count === 0) {
+                await db.parcels.bulkAdd(fallbackParcels);
+                showMessage("Nuk mund të lexohej Excel-i nga GitHub. U ngarkuan të dhënat lokale.", "error");
+                await loadAndRefresh();
+                $('#lastUpdateBadge').innerHTML = `⚠️ Gabim: Excel-i nuk u gjet`;
+            } else {
+                if (showToastMsg) showMessage("Dështoi sinkronizimi. Përdoren të dhënat ekzistuese.", "error");
+            }
+            const lastSyncMeta = await db.metadata.get("lastSync");
+            if (lastSyncMeta && lastSyncMeta.value) {
+                const d = new Date(lastSyncMeta.value);
+                $('#lastUpdateBadge').innerHTML = `📅 Sinkro i fundit: ${d.toLocaleDateString('sq-AL')} ${d.toLocaleTimeString('sq-AL')}`;
+            }
+        }
     }
 
     function getColumns(role) {
@@ -312,25 +361,6 @@
         return cols;
     }
 
-    async function renumberAllParcels(silent = false) {
-        let all = await db.parcels.toArray();
-        all.sort((a,b) => (a.numri_rendor || 0) - (b.numri_rendor || 0));
-        let needsUpdate = false;
-        const updated = all.map((item, i) => {
-            if (item.numri_rendor !== i+1) {
-                item.numri_rendor = i+1;
-                needsUpdate = true;
-            }
-            return item;
-        });
-        if (needsUpdate) {
-            await db.parcels.bulkPut(updated);
-            if (currentTable) currentTable.setData(updated);
-            if (!silent) showMessage("Numrat rendor u rregulluan!", "success");
-        }
-        await updateStats();
-    }
-
     async function initGrid(role) {
         if (currentTable) currentTable.destroy();
         currentTable = new Tabulator("#excel-grid", {
@@ -341,12 +371,16 @@
             paginationSizeSelector: [15, 25, 50, 100, 200],
             movableColumns: true,
             columns: getColumns(role),
-            placeholder: "Nuk ka të dhëna"
+            placeholder: "Duke ngarkuar të dhënat..."
         });
         if (role === 'admin') {
             currentTable.on("cellEdited", async cell => {
                 const data = cell.getRow().getData();
-                if (data.id) { await db.parcels.update(data.id, data); showMessage("Ndryshimi u ruajt", "success"); await updateStats(); }
+                if (data.id) { 
+                    await db.parcels.update(data.id, data); 
+                    showMessage("Ndryshimi u ruajt", "success"); 
+                    await updateStats(); 
+                }
             });
         }
         $('#globalSearch').oninput = () => {
@@ -384,19 +418,6 @@
         showMessage("Eksporti Excel u krye!", "success");
     }
 
-    async function exportToCsv() {
-        const data = await db.parcels.toArray();
-        const headers = ["Numri rendor","Zona Kadastrale","Nr parceles 1978","Nr parceles 2026","Siperfaqja 1978 (m2)","Siperfaqja e shpronesuar (m2)","Siperfaqja 2026 (m2)","Pronari","Dokumenti","Burimi i Dokumentit","Komente"];
-        const escape = v => { const s = String(v ?? ''); return s.includes(',') || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s; };
-        const rows = [headers.map(escape).join(',')];
-        data.forEach(p => rows.push(headers.map(h => escape(p[Object.keys(p).find(k => k.toLowerCase().includes(h.toLowerCase().split(' ')[0]))] || '')).join(',')));
-        const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
-        link.download = `Mrasor_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
-        link.click(); URL.revokeObjectURL(link.href);
-        showMessage("Eksporti CSV u krye!", "success");
-    }
-
     async function backupToJson() {
         const data = await db.parcels.toArray();
         const backup = { version: "1.0", exportedAt: new Date().toISOString(), totalRecords: data.length, data: data.map(({ id, ...rest }) => rest) };
@@ -421,18 +442,31 @@
 
     async function setupApp(role) {
         currentRole = role;
-        await seedInitialData();
+        
+        // Së pari provo të ngarkosh nga GitHub
+        await syncFromGitHub(false);
+        
+        // Nëse nuk ka të dhëna (rasti i parë), përdor fallback
+        const count = await db.parcels.count();
+        if (count === 0) {
+            await db.parcels.bulkAdd(fallbackParcels);
+            await loadAndRefresh();
+        }
+        
         await initGrid(role);
+        
         const isAdmin = role === 'admin';
-        const btns = ['exportExcelBtn', 'exportCsvBtn', 'backupBtn', 'restoreBtn', 'addNewRowBtn'];
+        const btns = ['syncFromGitBtn', 'exportExcelBtn', 'backupBtn', 'restoreBtn', 'addNewRowBtn'];
         btns.forEach(id => { const btn = $(`#${id}`); if (btn) btn.style.display = isAdmin ? 'inline-flex' : 'none'; });
+        
         if (isAdmin) {
+            $('#syncFromGitBtn').onclick = () => syncFromGitHub(true);
             $('#exportExcelBtn').onclick = exportToExcel;
-            $('#exportCsvBtn').onclick = exportToCsv;
             $('#backupBtn').onclick = backupToJson;
             $('#restoreBtn').onclick = () => $('#restoreInput').click();
             $('#addNewRowBtn').onclick = addNewParcel;
         }
+        
         $('#logoutBtn').onclick = async () => {
             if (await showConfirm("Dilni?", "A doni të dilni?", "Dil", "Qëndro")) {
                 $('#loginScreen').style.display = 'flex';
@@ -442,6 +476,7 @@
                 currentRole = null;
             }
         };
+        
         $('#appContainer').style.display = 'flex';
     }
 
@@ -455,6 +490,7 @@
             $('#loginPassword').value = '';
         }
     }
+    
     function viewerLogin() {
         $('#loginError').innerText = '';
         $('#loginScreen').style.display = 'none';
@@ -465,12 +501,14 @@
     $('#viewerLoginBtn').onclick = viewerLogin;
     $('#loginPassword').addEventListener('keypress', e => { if (e.key === 'Enter') adminLogin(); });
     $('#restoreInput').addEventListener('change', e => { if (e.target.files[0]) restoreFromJson(e.target.files[0]); e.target.value = ''; });
+    
     document.addEventListener('keydown', e => {
         if (!currentRole) return;
         if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (currentRole === 'admin') exportToExcel(); }
         if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); $('#globalSearch').focus(); }
         if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); if (currentRole === 'admin') addNewParcel(); }
     });
+    
     $('#loginUsername').focus();
 })();
 </script>
