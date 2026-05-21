@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Mrasor Platform – Shpronesimi 1978-2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@6.2.1/dist/css/tabulator.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1f5e7a;
+            --primary-light: #2c7da0;
+            --accent-green: #1e7145;
+            --accent-orange: #d68b2c;
+            --bg: #eef2f7;
+            --surface: #ffffff;
+            --text: #1a2b3c;
+            --text-muted: #5a6e7c;
+            --border: #dce5ec;
+            --danger: #c73e1d;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.2);
+            --radius-xl: 60px;
+            --radius-lg: 28px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); height: 100vh; overflow: hidden; }
+        .login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #1e2b3c 0%, #0f1a24 100%);
+            display: flex; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .login-card {
+            background: var(--surface); border-radius: 32px; padding: 40px 32px;
+            width: 440px; max-width: 94vw; text-align: center; animation: slideUp 0.5s ease;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .login-card h2 { color: #1e2b3c; margin-bottom: 4px; font-size: 1.5rem; }
+        .login-card .subtitle { color: var(--text-muted); margin-bottom: 24px; font-size: 0.9rem; }
+        .login-card input {
+            width: 100%; padding: 14px 18px; margin-bottom: 14px;
+            border: 2px solid #e2e8f0; border-radius: var(--radius-xl); font-size: 0.95rem;
+            background: #f8fafc;
+        }
+        .login-card input:focus { border-color: var(--primary-light); outline: none; }
+        .login-buttons { display: flex; gap: 12px; margin-top: 6px; flex-wrap: wrap; }
+        .login-btn {
+            flex: 1; background: var(--primary-light); color: white; border: none;
+            padding: 14px 16px; border-radius: var(--radius-xl); font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .login-btn.viewer-btn { background: #5f7f6e; }
+        .error-msg { color: var(--danger); font-size: 0.85rem; margin-top: 10px; }
+        .app-container { display: none; height: 100vh; flex-direction: column; }
+        .top-bar {
+            background: var(--surface); padding: 10px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 10px; border-bottom: 1px solid var(--border);
+        }
+        .logo-area { font-weight: 700; font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+        .stats-badge {
+            display: flex; gap: 16px; background: #f8fafc; padding: 6px 16px;
+            border-radius: var(--radius-xl); border: 1px solid #edf2f7;
+        }
+        .stat-item { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); }
+        .stat-value { font-weight: 800; color: var(--primary); margin-left: 5px; }
+        .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .search-wrapper { position: relative; }
+        .search-input {
+            padding: 8px 14px 8px 34px; border: 2px solid #e2e8f0;
+            border-radius: var(--radius-xl); font-size: 0.85rem; width: 180px;
+            background: #f8fafc;
+        }
+        .search-input:focus { border-color: var(--primary-light); width: 220px; background: #fff; }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .btn-icon {
+            background: #f1f5f9; border: none; font-size: 0.82rem; cursor: pointer;
+            padding: 8px 14px; border-radius: var(--radius-xl); font-weight: 500;
+            display: inline-flex; align-items: center; gap: 6px; color: #475569;
+        }
+        .btn-icon:hover { background: #e2e8f0; transform: translateY(-1px); }
+        .btn-excel { background: var(--accent-green); color: white; }
+        .btn-add { background: var(--primary-light); color: white; }
+        .btn-upload { background: var(--accent-orange); color: white; }
+        .btn-backup { background: #6b5b95; color: white; }
+        .btn-logout { background: #fee2e2; color: #991b1b; }
+        .table-wrapper { flex: 1; padding: 12px 16px; overflow: auto; background: #f9fbfd; }
+        #excel-grid { border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-md); background: white; }
+        .tabulator { font-size: 0.84rem !important; border: none !important; }
+        .tabulator .tabulator-header { background: #f1f5f9 !important; border-bottom: 2px solid #dce5ec !important; }
+        .tabulator-row:hover { background: #f0f9ff !important; }
+        .toast-container {
+            position: fixed; bottom: 20px; right: 20px; z-index: 1100;
+            display: flex; flex-direction: column-reverse; gap: 8px; pointer-events: none;
+        }
+        .toast-msg {
+            background: var(--primary-light); color: white; padding: 12px 20px;
+            border-radius: var(--radius-xl); font-size: 0.85rem; font-weight: 500;
+            box-shadow: var(--shadow-md); animation: toastIn 0.35s ease, toastOut 0.3s ease 2s forwards;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .toast-msg.error { background: var(--danger); }
+        .toast-msg.success { background: var(--accent-green); }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes toastOut { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(40px); } }
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15,26,36,0.6); z-index: 1500; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .modal-dialog {
+            background: white; border-radius: var(--radius-lg); padding: 28px 24px;
+            max-width: 420px; width: 92vw; text-align: center;
+        }
+        .modal-buttons { display: flex; gap: 10px; justify-content: center; margin-top: 20px; }
+        .modal-btn { padding: 10px 22px; border-radius: var(--radius-xl); font-weight: 600; cursor: pointer; border: none; }
+        .modal-btn.confirm { background: var(--danger); color: white; }
+        .modal-btn.cancel { background: #e2e8f0; color: #475569; }
+        footer {
+            font-size: 0.7rem; text-align: center; padding: 7px 12px;
+            color: #7b8c9b; background: #f8fafc; border-top: 1px solid #edf2f7;
+            display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+        }
+        @media (max-width: 900px) {
+            .stats-badge { display: none; }
+            .search-input { width: 120px; }
+            .btn-icon span.btn-label { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="loginScreen" class="login-overlay">
+    <div class="login-card">
+        <i class="fas fa-landmark" style="font-size: 52px; color: var(--primary-light); margin-bottom: 12px;"></i>
+        <h2>Mrasor · Kadastër</h2>
+        <p class="subtitle">Shpronesimi 1978 → 2026</p>
+        <input type="text" id="loginUsername" placeholder="Emri përdorues" autocomplete="off">
+        <input type="password" id="loginPassword" placeholder="Fjalëkalimi (për admin)">
+        <div class="login-buttons">
+            <button class="login-btn" id="adminLoginBtn"><i class="fas fa-user-shield"></i> Admin Login</button>
+            <button class="login-btn viewer-btn" id="viewerLoginBtn"><i class="fas fa-eye"></i> Viewer (shiko)</button>
+        </div>
+        <div id="loginError" class="error-msg"></div>
+    </div>
+</div>
+
+<div id="appContainer" class="app-container">
+    <div class="top-bar">
+        <div class="logo-area"><i class="fas fa-map-marked-alt"></i> MRASOR · Shpronësimi 1978-2026</div>
+        <div class="stats-badge">
+            <div class="stat-item">📦 Parcela: <span id="totalParcels" class="stat-value">0</span></div>
+            <div class="stat-item">📐 Shpronesuar: <span id="totalExp" class="stat-value">0 m²</span></div>
+            <div class="stat-item">🗺️ Sip.2026: <span id="totalArea2026" class="stat-value">0 m²</span></div>
+            <div class="stat-item">👥 Pronarë: <span id="uniqueOwners" class="stat-value">0</span></div>
+        </div>
+        <div class="toolbar">
+            <div class="search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="globalSearch" placeholder="Kërko...">
+            </div>
+            <button id="exportExcelBtn" class="btn-icon btn-excel" style="display:none;"><i class="fas fa-file-excel"></i> <span class="btn-label">Excel</span></button>
+            <button id="exportCsvBtn" class="btn-icon" style="display:none;"><i class="fas fa-file-csv"></i> <span class="btn-label">CSV</span></button>
+            <button id="backupBtn" class="btn-icon btn-backup" style="display:none;"><i class="fas fa-download"></i> <span class="btn-label">Backup</span></button>
+            <button id="restoreBtn" class="btn-icon" style="display:none;"><i class="fas fa-upload"></i> <span class="btn-label">Rikthe</span></button>
+            <button id="addNewRowBtn" class="btn-icon btn-add" style="display:none;"><i class="fas fa-plus"></i> <span class="btn-label">Shto</span></button>
+            <button id="logoutBtn" class="btn-icon btn-logout"><i class="fas fa-sign-out-alt"></i> <span class="btn-label">Dil</span></button>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <div id="excel-grid"></div>
+    </div>
+    <footer>✎ Admin: kliko qelizën për edit | Eksport Excel/CSV | Backup JSON | <span class="kb-shortcut">Ctrl+S</span> <span class="kb-shortcut">Ctrl+F</span> <span class="kb-shortcut">Ctrl+N</span></footer>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<input type="file" id="restoreInput" accept=".json" style="display:none;">
+
+<script src="https://unpkg.com/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+<script src="https://unpkg.com/dexie@3.2.4/dist/dexie.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+
+<script>
+(function() {
+    // ==================== TË DHËNAT E PLOTA NGA EXCEL (39 parcela) ====================
+    const embeddedParcels = [
+        { numri_rendor:1, zona_kadastrale:"Mrasor", nr_parceles_1978:"258-0", nr_parceles_2026:"258-1", siperfaqja_1978:8777, siperfaqja_shpronesuar:860, siperfaqja_2026:1252, pronari:"Tahir Ali Mrasoraj", dokumenti:"Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Parcela ne Dokumentacionin e shpronesimit te vitit 1978 ka qene e pandare,parcela ne gjendjen tash te vitit 2026 eshte e ndare ne 4 pjese,ku me ndarjet e reja vetem parcela me nr 258-1 perfshihet ne shpronesim.Nga linja e shpronesimit siperfaqja qe shpronesohet eshte 658 m2" },
+        { numri_rendor:2, zona_kadastrale:"Mrasor", nr_parceles_1978:"260-0", nr_parceles_2026:"260-1", siperfaqja_1978:3635, siperfaqja_shpronesuar:104, siperfaqja_2026:1280, pronari:"Tahir Ali Mrasoraj", dokumenti:"Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Nga linjat e shpronesimit parcela 260-1 siperfaqe 104 m2" },
+        { numri_rendor:3, zona_kadastrale:"Mrasor", nr_parceles_1978:"260-0", nr_parceles_2026:"260-2", siperfaqja_1978:3635, siperfaqja_shpronesuar:818, siperfaqja_2026:1113, pronari:"Tahir Ali Mrasoraj", dokumenti:"Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Ndarje e re nga parcela origjinale 260-0" },
+        { numri_rendor:4, zona_kadastrale:"Mrasor", nr_parceles_1978:"261-0", nr_parceles_2026:"261-0", siperfaqja_1978:3126, siperfaqja_shpronesuar:275, siperfaqja_2026:3121, pronari:"Tahir Ali Mrasoraj", dokumenti:"Lenda Tahir Ali Mrasoraj Nr.148-78 ZK Mrasor KK Rahovec,parcelat kadastrale 258-0,260-0,261-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 183m2" },
+        { numri_rendor:5, zona_kadastrale:"Mrasor", nr_parceles_1978:"268-0", nr_parceles_2026:"268-0", siperfaqja_1978:962, siperfaqja_shpronesuar:20, siperfaqja_2026:979, pronari:"Haxhi Danë Mrasoraj", dokumenti:"Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 60m2" },
+        { numri_rendor:6, zona_kadastrale:"Mrasor", nr_parceles_1978:"269-0", nr_parceles_2026:"269-0", siperfaqja_1978:5293, siperfaqja_shpronesuar:2430, siperfaqja_2026:5316, pronari:"Haxhi Danë Mrasoraj", dokumenti:"Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 2380m2" },
+        { numri_rendor:7, zona_kadastrale:"Mrasor", nr_parceles_1978:"247-0", nr_parceles_2026:"247-0", siperfaqja_1978:9196, siperfaqja_shpronesuar:415, siperfaqja_2026:9977, pronari:"Salih Haxhi Mrasoraj", dokumenti:"Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 325m2" },
+        { numri_rendor:8, zona_kadastrale:"Mrasor", nr_parceles_1978:"425-0", nr_parceles_2026:"425-0", siperfaqja_1978:0, siperfaqja_shpronesuar:365, siperfaqja_2026:8564, pronari:"Haxhi Danë Mrasoraj", dokumenti:"Lenda Haxhi Dane Mrasoraj Nr.149-78 ZK Mrasor KK Rahovec,parcelat kadastrale 268-0,269-0 dhe 247-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 197m2" },
+        { numri_rendor:9, zona_kadastrale:"Mrasor", nr_parceles_1978:"254-0", nr_parceles_2026:"254-0", siperfaqja_1978:6579, siperfaqja_shpronesuar:320, siperfaqja_2026:6547, pronari:"Zenel Ali Mrasoraj", dokumenti:"Lenda Zenel Ali Mrasoraj Nr.147-78 ZK Mrasor KK Rahovec,parcelat kadastrale 254-0,255-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 255m2" },
+        { numri_rendor:10, zona_kadastrale:"Mrasor", nr_parceles_1978:"255-0", nr_parceles_2026:"255-0", siperfaqja_1978:342, siperfaqja_shpronesuar:282, siperfaqja_2026:342, pronari:"Zenel Ali Mrasoraj", dokumenti:"Lenda Zenel Ali Mrasoraj Nr.147-78 ZK Mrasor KK Rahovec,parcelat kadastrale 254-0,255-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 289m2" },
+        { numri_rendor:11, zona_kadastrale:"Mrasor", nr_parceles_1978:"264-0", nr_parceles_2026:"264-0", siperfaqja_1978:1202, siperfaqja_shpronesuar:350, siperfaqja_2026:1205, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 389m2" },
+        { numri_rendor:12, zona_kadastrale:"Mrasor", nr_parceles_1978:"265-0", nr_parceles_2026:"265-0", siperfaqja_1978:706, siperfaqja_shpronesuar:706, siperfaqja_2026:704, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"E gjithe parcela shpronesohet" },
+        { numri_rendor:13, zona_kadastrale:"Mrasor", nr_parceles_1978:"230-0", nr_parceles_2026:"230-0", siperfaqja_1978:6785, siperfaqja_shpronesuar:2000, siperfaqja_2026:6791, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1788m2" },
+        { numri_rendor:14, zona_kadastrale:"Mrasor", nr_parceles_1978:"229-0", nr_parceles_2026:"229-0", siperfaqja_1978:4003, siperfaqja_shpronesuar:1225, siperfaqja_2026:3975, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1006m2" },
+        { numri_rendor:15, zona_kadastrale:"Mrasor", nr_parceles_1978:"239-0", nr_parceles_2026:"239-0", siperfaqja_1978:4222, siperfaqja_shpronesuar:215, siperfaqja_2026:4221, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 325m2" },
+        { numri_rendor:16, zona_kadastrale:"Mrasor", nr_parceles_1978:"379-0", nr_parceles_2026:"379-0", siperfaqja_1978:8718, siperfaqja_shpronesuar:2175, siperfaqja_2026:8774, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1641m2" },
+        { numri_rendor:17, zona_kadastrale:"Mrasor", nr_parceles_1978:"380-0", nr_parceles_2026:"380-0", siperfaqja_1978:1440, siperfaqja_shpronesuar:250, siperfaqja_2026:1444, pronari:"Rrusta Bajram Mrasoraj", dokumenti:"Lenda Rrusta Bajram Mrasoraj Nr.150-78 ZK Mrasor KK Rahovec,parcelat kadastrale 264-0,265-0", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 293m2" },
+        { numri_rendor:18, zona_kadastrale:"Mrasor", nr_parceles_1978:"267-1", nr_parceles_2026:"267-1", siperfaqja_1978:2956, siperfaqja_shpronesuar:1650, siperfaqja_2026:2968, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1947 m2" },
+        { numri_rendor:19, zona_kadastrale:"Mrasor", nr_parceles_1978:"241-2", nr_parceles_2026:"", siperfaqja_1978:900, siperfaqja_shpronesuar:0, siperfaqja_2026:0, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"" },
+        { numri_rendor:20, zona_kadastrale:"Mrasor", nr_parceles_1978:"238-0", nr_parceles_2026:"238-3", siperfaqja_1978:525, siperfaqja_shpronesuar:525, siperfaqja_2026:306, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Parcela ne Dokumentacionin e shpronesimit te vitit 1978 ka qene e pandare,parcela ne gjendjen tash te vitit 2026 eshte e ndare ne 3 pjese ne grafik,ku me ndarjet e reja vetem parcela me nr 238-3 perfshihet ne baze te linjes se shpronesimit shpronesohet e gjitha me siperfaqe 306 m2" },
+        { numri_rendor:21, zona_kadastrale:"Mrasor", nr_parceles_1978:"376-0", nr_parceles_2026:"376-5", siperfaqja_1978:0, siperfaqja_shpronesuar:1930, siperfaqja_2026:1471, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Parcela ne Dokumentacionin e shpronesimit te vitit 1978 ka qene e pandare,parcela ne gjendjen tash te vitit 2026 eshte e ndare ne 5 pjese ne grafik,ku me ndarjet e reja vetem parcela me nr 376-5 perfshihet ne baze te linjes se shpronesimit shpronesohet e gjitha me siperfaqe 1471 m2" },
+        { numri_rendor:22, zona_kadastrale:"Mrasor", nr_parceles_1978:"417-0", nr_parceles_2026:"417-0", siperfaqja_1978:0, siperfaqja_shpronesuar:310, siperfaqja_2026:3269, pronari:"Amrush Halil Avdyli", dokumenti:"Lenda Amrush Halil Avdyli Nr 151-78 ZK Mrasor KK Rahovec,parcelat kadastrale 267-1.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 311 m2" },
+        { numri_rendor:23, zona_kadastrale:"Mrasor", nr_parceles_1978:"2-0", nr_parceles_2026:"2-0", siperfaqja_1978:1046, siperfaqja_shpronesuar:395, siperfaqja_2026:1078, pronari:"Qazim Cakë Berisha", dokumenti:"Lenda Qazim Cake Berisha Nr.152-72 ZK Mrasor KK Rahovec,parcelat kadastrale 2-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 395m2" },
+        { numri_rendor:24, zona_kadastrale:"Mrasor", nr_parceles_1978:"1-0", nr_parceles_2026:"1-3", siperfaqja_1978:4086, siperfaqja_shpronesuar:1580, siperfaqja_2026:1097, pronari:"Isuf Ukë Berisha", dokumenti:"Lenda Isuf Ukë Berisha Nr.153-72 ZK Mrasor KK Rahovec,parcelat kadastrale 1-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1097m2" },
+        { numri_rendor:25, zona_kadastrale:"Mrasor", nr_parceles_1978:"509-0", nr_parceles_2026:"509-0", siperfaqja_1978:24227, siperfaqja_shpronesuar:9800, siperfaqja_2026:22870, pronari:"Ndërrmarrja transportuese hekurudhore Beograd", dokumenti:"Lenda Ndërrmarrja transportuese hekurudhore Beograd Nr.155-78 ZK Mrasor KK Rahovec,parcela kadastrale 509-0.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 8702 m2" },
+        { numri_rendor:26, zona_kadastrale:"Mrasor", nr_parceles_1978:"10-0", nr_parceles_2026:"10-0", siperfaqja_1978:5714, siperfaqja_shpronesuar:1580, siperfaqja_2026:5701, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1722 m2" },
+        { numri_rendor:27, zona_kadastrale:"Mrasor", nr_parceles_1978:"8-0", nr_parceles_2026:"8-0", siperfaqja_1978:35253, siperfaqja_shpronesuar:2060, siperfaqja_2026:35693, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1883 m2" },
+        { numri_rendor:28, zona_kadastrale:"Mrasor", nr_parceles_1978:"9-0", nr_parceles_2026:"9-0", siperfaqja_1978:25468, siperfaqja_shpronesuar:625, siperfaqja_2026:25604, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 321m2" },
+        { numri_rendor:29, zona_kadastrale:"Mrasor", nr_parceles_1978:"15-0", nr_parceles_2026:"15-0", siperfaqja_1978:275719, siperfaqja_shpronesuar:3090, siperfaqja_2026:275683, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 3048m2" },
+        { numri_rendor:30, zona_kadastrale:"Mrasor", nr_parceles_1978:"14-0", nr_parceles_2026:"14-0", siperfaqja_1978:701, siperfaqja_shpronesuar:701, siperfaqja_2026:683, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 610m2" },
+        { numri_rendor:31, zona_kadastrale:"Mrasor", nr_parceles_1978:"94-0", nr_parceles_2026:"94-0", siperfaqja_1978:970, siperfaqja_shpronesuar:410, siperfaqja_2026:967, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 375m2" },
+        { numri_rendor:32, zona_kadastrale:"Mrasor", nr_parceles_1978:"95-0", nr_parceles_2026:"95-0", siperfaqja_1978:752, siperfaqja_shpronesuar:300, siperfaqja_2026:743, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 216m2" },
+        { numri_rendor:33, zona_kadastrale:"Mrasor", nr_parceles_1978:"96-0", nr_parceles_2026:"96-0", siperfaqja_1978:628, siperfaqja_shpronesuar:453, siperfaqja_2026:623, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 478m2" },
+        { numri_rendor:34, zona_kadastrale:"Mrasor", nr_parceles_1978:"99-0", nr_parceles_2026:"99-0", siperfaqja_1978:83, siperfaqja_shpronesuar:83, siperfaqja_2026:83, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"E gjithe parcela shpronesohet" },
+        { numri_rendor:35, zona_kadastrale:"Mrasor", nr_parceles_1978:"82-0", nr_parceles_2026:"82-0", siperfaqja_1978:35625, siperfaqja_shpronesuar:1550, siperfaqja_2026:35624, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1655m2" },
+        { numri_rendor:36, zona_kadastrale:"Mrasor", nr_parceles_1978:"262-0", nr_parceles_2026:"262-0", siperfaqja_1978:2444, siperfaqja_shpronesuar:1419, siperfaqja_2026:2430, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1932m2" },
+        { numri_rendor:37, zona_kadastrale:"Mrasor", nr_parceles_1978:"342-0", nr_parceles_2026:"342-0", siperfaqja_1978:113759, siperfaqja_shpronesuar:3325, siperfaqja_2026:113562, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 3267m2" },
+        { numri_rendor:38, zona_kadastrale:"Mrasor", nr_parceles_1978:"421-0", nr_parceles_2026:"421-0", siperfaqja_1978:671, siperfaqja_shpronesuar:98, siperfaqja_2026:657, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 425m2" },
+        { numri_rendor:39, zona_kadastrale:"Mrasor", nr_parceles_1978:"420-0", nr_parceles_2026:"420-0", siperfaqja_1978:13172, siperfaqja_shpronesuar:1580, siperfaqja_2026:13156, pronari:"Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec", dokumenti:"Lenda Ndërmarrja mbi ekonominë e pyjeve \"Koritnik\" në Rahovec Nr.156.78 ZK Mrasor KK Rahovec,parcelat kadastrale 8-0,9-0,10-0 etc.pdf", burimi_dokumentit:"Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente:"Sipas linjes se shpronesimit siperfaqja qe shpronesohet eshte 1710m2" }
+    ];
+
+    // Database
+    const db = new Dexie("MrasorDB");
+    db.version(1).stores({ parcels: "++id, numri_rendor, zona_kadastrale, nr_parceles_1978, nr_parceles_2026, pronari" });
+    db.version(2).stores({ metadata: "key" }).upgrade(async tx => {
+        await tx.table("metadata").bulkAdd([{ key: "lastSync", value: null }]);
+    });
+
+    let currentTable = null, currentRole = null;
+    const $ = sel => document.querySelector(sel);
+
+    function showMessage(text, type = 'info') {
+        const container = $('#toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast-msg ${type === 'error' ? 'error' : type === 'success' ? 'success' : ''}`;
+        const icons = { info: 'fa-circle-info', error: 'fa-circle-exclamation', success: 'fa-circle-check' };
+        toast.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> <span>${text}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+    }
+
+    function showConfirm(title, message, confirmText = 'Konfirmo', cancelText = 'Anulo') {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay';
+            overlay.innerHTML = `<div class="modal-dialog"><h3>${title}</h3><p>${message}</p><div class="modal-buttons"><button class="modal-btn cancel" id="modalCancel">${cancelText}</button><button class="modal-btn confirm" id="modalConfirm">${confirmText}</button></div></div>`;
+            document.body.appendChild(overlay);
+            const close = result => { overlay.remove(); resolve(result); };
+            overlay.querySelector('#modalConfirm').onclick = () => close(true);
+            overlay.querySelector('#modalCancel').onclick = () => close(false);
+            overlay.onclick = e => { if (e.target === overlay) close(false); };
+        });
+    }
+
+    async function updateStats() {
+        const all = await db.parcels.toArray();
+        $('#totalParcels').innerText = all.length;
+        $('#totalExp').innerHTML = all.reduce((s, p) => s + (Number(p.siperfaqja_shpronesuar) || 0), 0).toLocaleString('sq-AL') + " m²";
+        $('#totalArea2026').innerHTML = all.reduce((s, p) => s + (Number(p.siperfaqja_2026) || 0), 0).toLocaleString('sq-AL') + " m²";
+        $('#uniqueOwners').innerText = new Set(all.map(p => p.pronari?.trim()).filter(Boolean)).size;
+    }
+
+    async function loadAndRefresh() {
+        const data = await db.parcels.toArray();
+        if (currentTable) currentTable.setData(data);
+        await updateStats();
+    }
+
+    async function seedInitialData() {
+        const count = await db.parcels.count();
+        if (count === 0) {
+            await db.parcels.bulkAdd(embeddedParcels);
+            showMessage("Të dhënat e plota (39 parcela) u ngarkuan!", "success");
+        }
+        await loadAndRefresh();
+    }
+
+    function getColumns(role) {
+        const cols = [
+            { title: "Nr.Rendor", field: "numri_rendor", width: 85, editor: role === 'admin' ? "number" : false, headerSort: true },
+            { title: "Zona Kad.", field: "zona_kadastrale", width: 95, editor: role === 'admin' ? "input" : false },
+            { title: "Nr 1978", field: "nr_parceles_1978", width: 100, editor: role === 'admin' ? "input" : false },
+            { title: "Nr 2026", field: "nr_parceles_2026", width: 100, editor: role === 'admin' ? "input" : false },
+            { title: "Siperf 1978 (m²)", field: "siperfaqja_1978", width: 120, hozAlign: "right", editor: role === 'admin' ? "number" : false, formatter: "money", formatterParams: { precision: 2 } },
+            { title: "Shpronesuar (m²)", field: "siperfaqja_shpronesuar", width: 130, hozAlign: "right", editor: role === 'admin' ? "number" : false, formatter: "money", formatterParams: { precision: 2 } },
+            { title: "Siperf 2026 (m²)", field: "siperfaqja_2026", width: 120, hozAlign: "right", editor: role === 'admin' ? "number" : false, formatter: "money", formatterParams: { precision: 2 } },
+            { title: "Pronari", field: "pronari", width: 200, editor: role === 'admin' ? "input" : false },
+            { title: "Dokumenti", field: "dokumenti", width: 220, editor: role === 'admin' ? "textarea" : false, formatter: "textarea" },
+            { title: "Burimi", field: "burimi_dokumentit", width: 180, editor: role === 'admin' ? "input" : false },
+            { title: "Komente", field: "komente", width: 250, editor: role === 'admin' ? "textarea" : false, formatter: "textarea" }
+        ];
+        if (role === 'admin') {
+            cols.push({ title: "Fshij", field: "delete", formatter: "buttonCross", width: 55, cellClick: async (e, cell) => {
+                const row = cell.getRow().getData();
+                if (await showConfirm("Fshije parcelën?", `A jeni i sigurt që doni të fshini parcelën me Nr. ${row.numri_rendor}?`, "Fshije", "Anulo")) {
+                    await db.parcels.delete(row.id);
+                    await renumberAllParcels(true);
+                    await loadAndRefresh();
+                    showMessage("Parcela u fshi!", "success");
+                }
+            }});
+        }
+        return cols;
+    }
+
+    async function renumberAllParcels(silent = false) {
+        let all = await db.parcels.toArray();
+        all.sort((a,b) => (a.numri_rendor || 0) - (b.numri_rendor || 0));
+        let needsUpdate = false;
+        const updated = all.map((item, i) => {
+            if (item.numri_rendor !== i+1) {
+                item.numri_rendor = i+1;
+                needsUpdate = true;
+            }
+            return item;
+        });
+        if (needsUpdate) {
+            await db.parcels.bulkPut(updated);
+            if (currentTable) currentTable.setData(updated);
+            if (!silent) showMessage("Numrat rendor u rregulluan!", "success");
+        }
+        await updateStats();
+    }
+
+    async function initGrid(role) {
+        if (currentTable) currentTable.destroy();
+        currentTable = new Tabulator("#excel-grid", {
+            data: await db.parcels.toArray(),
+            layout: "fitColumns",
+            pagination: "local",
+            paginationSize: 25,
+            paginationSizeSelector: [15, 25, 50, 100, 200],
+            movableColumns: true,
+            columns: getColumns(role),
+            placeholder: "Nuk ka të dhëna"
+        });
+        if (role === 'admin') {
+            currentTable.on("cellEdited", async cell => {
+                const data = cell.getRow().getData();
+                if (data.id) { await db.parcels.update(data.id, data); showMessage("Ndryshimi u ruajt", "success"); await updateStats(); }
+            });
+        }
+        $('#globalSearch').oninput = () => {
+            const term = $('#globalSearch').value.toLowerCase();
+            currentTable.setFilter(data => Object.values(data).some(v => String(v ?? '').toLowerCase().includes(term)));
+        };
+        await updateStats();
+    }
+
+    async function addNewParcel() {
+        const all = await db.parcels.toArray();
+        const maxNum = all.length ? Math.max(...all.map(p => p.numri_rendor || 0)) : 0;
+        await db.parcels.add({
+            numri_rendor: maxNum + 1, zona_kadastrale: "Mrasor", nr_parceles_1978: "", nr_parceles_2026: "",
+            siperfaqja_1978: 0, siperfaqja_shpronesuar: 0, siperfaqja_2026: 0,
+            pronari: "", dokumenti: "", burimi_dokumentit: "Komuna e Rahovecit-Drejtoria për Gjeodezi,Kadastër dhe Pronë", komente: ""
+        });
+        await renumberAllParcels(true);
+        await loadAndRefresh();
+        showMessage("Parcelë e re u shtua!", "success");
+    }
+
+    async function exportToExcel() {
+        const data = await db.parcels.toArray();
+        const wsData = data.map(p => ({
+            "Numri rendor": p.numri_rendor, "Zona Kadastrale": p.zona_kadastrale,
+            "Nr parceles 1978": p.nr_parceles_1978, "Nr parceles 2026": p.nr_parceles_2026,
+            "Siperfaqja 1978 (m2)": p.siperfaqja_1978, "Siperfaqja e shpronesuar (m2)": p.siperfaqja_shpronesuar,
+            "Siperfaqja 2026 (m2)": p.siperfaqja_2026, "Pronari": p.pronari,
+            "Dokumenti": p.dokumenti, "Burimi i Dokumentit": p.burimi_dokumentit, "Komente": p.komente
+        }));
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(wsData), "Shpronesimi");
+        XLSX.writeFile(wb, `Mrasor_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
+        showMessage("Eksporti Excel u krye!", "success");
+    }
+
+    async function exportToCsv() {
+        const data = await db.parcels.toArray();
+        const headers = ["Numri rendor","Zona Kadastrale","Nr parceles 1978","Nr parceles 2026","Siperfaqja 1978 (m2)","Siperfaqja e shpronesuar (m2)","Siperfaqja 2026 (m2)","Pronari","Dokumenti","Burimi i Dokumentit","Komente"];
+        const escape = v => { const s = String(v ?? ''); return s.includes(',') || s.includes('"') ? '"' + s.replace(/"/g, '""') + '"' : s; };
+        const rows = [headers.map(escape).join(',')];
+        data.forEach(p => rows.push(headers.map(h => escape(p[Object.keys(p).find(k => k.toLowerCase().includes(h.toLowerCase().split(' ')[0]))] || '')).join(',')));
+        const blob = new Blob(['\uFEFF' + rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+        link.download = `Mrasor_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.csv`;
+        link.click(); URL.revokeObjectURL(link.href);
+        showMessage("Eksporti CSV u krye!", "success");
+    }
+
+    async function backupToJson() {
+        const data = await db.parcels.toArray();
+        const backup = { version: "1.0", exportedAt: new Date().toISOString(), totalRecords: data.length, data: data.map(({ id, ...rest }) => rest) };
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+        link.download = `Mrasor_Backup_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+        link.click(); URL.revokeObjectURL(link.href);
+        showMessage("Backup u ruajt!", "success");
+    }
+
+    async function restoreFromJson(file) {
+        if (!file) return;
+        const text = await file.text();
+        const backup = JSON.parse(text);
+        if (!backup.data) throw new Error("Format i pavlefshëm");
+        if (!await showConfirm("Rikthimi nga backup", `Rikthe ${backup.data.length} parcela? Të dhënat aktuale do të zëvendësohen.`, "Rikthe", "Anulo")) return;
+        await db.parcels.clear();
+        await db.parcels.bulkAdd(backup.data.map((item, i) => ({ ...item, numri_rendor: i + 1 })));
+        await loadAndRefresh();
+        showMessage(`Rikthimi u krye! ${backup.data.length} parcela.`, "success");
+    }
+
+    async function setupApp(role) {
+        currentRole = role;
+        await seedInitialData();
+        await initGrid(role);
+        const isAdmin = role === 'admin';
+        const btns = ['exportExcelBtn', 'exportCsvBtn', 'backupBtn', 'restoreBtn', 'addNewRowBtn'];
+        btns.forEach(id => { const btn = $(`#${id}`); if (btn) btn.style.display = isAdmin ? 'inline-flex' : 'none'; });
+        if (isAdmin) {
+            $('#exportExcelBtn').onclick = exportToExcel;
+            $('#exportCsvBtn').onclick = exportToCsv;
+            $('#backupBtn').onclick = backupToJson;
+            $('#restoreBtn').onclick = () => $('#restoreInput').click();
+            $('#addNewRowBtn').onclick = addNewParcel;
+        }
+        $('#logoutBtn').onclick = async () => {
+            if (await showConfirm("Dilni?", "A doni të dilni?", "Dil", "Qëndro")) {
+                $('#loginScreen').style.display = 'flex';
+                $('#appContainer').style.display = 'none';
+                if (currentTable) currentTable.destroy();
+                currentTable = null;
+                currentRole = null;
+            }
+        };
+        $('#appContainer').style.display = 'flex';
+    }
+
+    function adminLogin() {
+        if ($('#loginPassword').value === "news2026") {
+            $('#loginError').innerText = '';
+            $('#loginScreen').style.display = 'none';
+            setupApp('admin');
+        } else {
+            $('#loginError').innerText = "Fjalëkalimi i pasaktë!";
+            $('#loginPassword').value = '';
+        }
+    }
+    function viewerLogin() {
+        $('#loginError').innerText = '';
+        $('#loginScreen').style.display = 'none';
+        setupApp('viewer');
+    }
+
+    $('#adminLoginBtn').onclick = adminLogin;
+    $('#viewerLoginBtn').onclick = viewerLogin;
+    $('#loginPassword').addEventListener('keypress', e => { if (e.key === 'Enter') adminLogin(); });
+    $('#restoreInput').addEventListener('change', e => { if (e.target.files[0]) restoreFromJson(e.target.files[0]); e.target.value = ''; });
+    document.addEventListener('keydown', e => {
+        if (!currentRole) return;
+        if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); if (currentRole === 'admin') exportToExcel(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); $('#globalSearch').focus(); }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); if (currentRole === 'admin') addNewParcel(); }
+    });
+    $('#loginUsername').focus();
+})();
+</script>
+</body>
+</html>
