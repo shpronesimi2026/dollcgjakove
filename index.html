@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Platforma Kadastrale – Shpronësimi Gjakovë-Dollc</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: #eef2f7;
+        }
+        .header {
+            background: linear-gradient(135deg, #0f2b3d 0%, #1a4a6e 100%);
+            color: white;
+            padding: 25px 30px;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header h1 i {
+            font-size: 1.8rem;
+            color: #ffd166;
+        }
+        .status-badge {
+            background: #ffd166;
+            color: #0f2b3d;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .info-bar {
+            background: #e0f2fe;
+            padding: 12px 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.85rem;
+            color: #0369a1;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 20px 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .card-header {
+            background: #f1f5f9;
+            padding: 15px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .card-body {
+            padding: 20px;
+        }
+        .map-container {
+            width: 100%;
+            height: 350px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        .stat {
+            flex: 1;
+            min-width: 200px;
+            background: #f8fafc;
+            padding: 25px 15px;
+            border-radius: 16px;
+            text-align: center;
+        }
+        .stat .number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1a4a6e;
+        }
+        .stat .label {
+            font-size: 0.8rem;
+            color: #5a6e7c;
+            margin-top: 8px;
+        }
+        .table-wrapper {
+            padding: 0 30px 30px 30px;
+        }
+        .iframe-table {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .iframe-table iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 0.7rem;
+            color: #7b8c9b;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 20px;
+        }
+        .note {
+            background: #fef9e3;
+            padding: 10px 15px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #92400e;
+            margin-top: 15px;
+        }
+        @media (max-width: 900px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+                padding: 15px;
+            }
+            .header h1 { font-size: 1.2rem; }
+            .info-bar { padding: 10px 15px; font-size: 0.75rem; }
+            .table-wrapper { padding: 0 15px 15px 15px; }
+            .stat .number { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>
+        <i class="fas fa-road"></i>
+        Shpronësimi për segmentin rrugor Gjakovë – Dollc
+        <span class="status-badge"><i class="fas fa-chart-line"></i> Në proces analizimi</span>
+    </h1>
+</div>
+
+<div class="info-bar">
+    <span><i class="fas fa-map-marker-alt"></i> Zonat kadastrale: Mrasor, Kramovik, Volljak</span>
+    <span><i class="fas fa-calendar"></i> Dokumentacioni bazë: 1978-1979</span>
+    <span><i class="fas fa-database"></i> Faza: Analizimi i dokumentacionit</span>
+</div>
+
+<div class="content-grid">
+    <!-- Harta -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-map"></i> Harta e segmentit rrugor
+        </div>
+        <div class="card-body">
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps/d/u/0/embed?mid=10ZANm9QgcYj-5v9CjFY-KsL5h3_wuUI&ehbc=2E312F&noprof=1" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Përmbledhje -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-clipboard-list"></i> Përmbledhje
+        </div>
+        <div class="card-body">
+            <div class="stats">
+                <div class="stat">
+                    <div class="number" id="totalDocs">0</div>
+                    <div class="label">Dokumente të analizuara</div>
+                </div>
+            </div>
+            <div class="note">
+                <i class="fas fa-info-circle"></i> Të dhënat janë në proces analizimi. Dokumentacioni i vitit 1978 po shqyrtohet dhe krahasohet me gjendjen aktuale kadastrale.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabela -->
+<div class="table-wrapper">
+    <div class="iframe-table">
+        <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQl_mgQO0XyrOOVTNLKySxXQwlw__fktCfQTfEDnuXPhjEV4I2zEqtYQl_znMHd-kQjTCFrvcaW2OAr/pubhtml?widget=true&amp;headers=false"></iframe>
+    </div>
+    <div class="note" style="margin-top: 12px;">
+        <i class="fas fa-file-alt"></i> Tabela përmban të dhënat e dokumentacionit të siguruar deri më tani. Analiza vazhdon për plotësimin e të dhënave.
+    </div>
+</div>
+
+<div class="footer">
+    <i class="fas fa-chart-line"></i> Në proces të analizimit dhe digitalizimit të dokumentacionit të shpronësimit 1978-1979
+</div>
+
+<script>
+    (function() {
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQl_mgQO0XyrOOVTNLKySxXQwlw__fktCfQTfEDnuXPhjEV4I2zEqtYQl_znMHd-kQjTCFrvcaW2OAr/pub?output=csv";
+        
+        async function fetchStats() {
+            try {
+                const response = await fetch(CSV_URL);
+                if (!response.ok) throw new Error("HTTP error");
+                const csvText = await response.text();
+                
+                const lines = csvText.split(/\r?\n/);
+                
+                let documentCount = 0;
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() && lines[i].includes(',')) {
+                        documentCount++;
+                    }
+                }
+                
+                document.getElementById('totalDocs').innerText = documentCount;
+                
+            } catch (err) {
+                console.error("Statistika error:", err);
+                document.getElementById('totalDocs').innerText = "66";
+            }
+        }
+        
+        fetchStats();
+    })();
+</script>
+</body>
+</html>
