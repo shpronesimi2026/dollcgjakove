@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mrasor Platform – Shpronesimi 1978-2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #eef2f7; height: 100vh; }
+        .header {
+            background: linear-gradient(135deg, #0f2b3d, #1a4a6e);
+            color: white;
+            padding: 20px 25px;
+        }
+        .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .header p { font-size: 0.8rem; opacity: 0.8; margin-top: 5px; }
+        .iframe-container {
+            padding: 20px;
+            height: calc(100vh - 140px);
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background: white;
+        }
+        .footer {
+            text-align: center;
+            padding: 10px;
+            font-size: 0.7rem;
+            color: #7b8c9b;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+        }
+        @media (max-width: 700px) {
+            .header h1 { font-size: 1.2rem; }
+            .iframe-container { padding: 10px; height: calc(100vh - 120px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1><i class="fas fa-landmark"></i> Mrasor · Shpronësimi 1978-2026</h1>
+    <p><i class="fas fa-database"></i> Të dhënat zyrtare kadastrale - Komuna e Rahovecit</p>
+</div>
+
+<div class="iframe-container">
+    <iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQl_mgQO0XyrOOVTNLKySxXQwlw__fktCfQTfEDnuXPhjEV4I2zEqtYQl_znMHd-kQjTCFrvcaW2OAr/pubhtml?widget=true&amp;headers=false"></iframe>
+</div>
+
+<div class="footer">
+    <i class="fas fa-sync-alt"></i> Të dhënat përditësohen automatikisht nga Google Sheets | Burimi: Drejtoria për Gjeodezi, Kadastër dhe Pronë - Rahovec
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</body>
+</html>
